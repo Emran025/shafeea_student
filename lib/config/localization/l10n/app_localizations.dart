@@ -97,7 +97,7 @@ abstract class AppLocalizations {
   /// The title of the application
   ///
   /// In ar, this message translates to:
-  /// **'أكاديمية تاج الوقار'**
+  /// **'أكاديمية شفيع'**
   String get appName;
 
   /// Text for the logIn button

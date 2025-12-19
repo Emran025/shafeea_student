@@ -1,14 +1,10 @@
 part of 'auth_bloc.dart';
 
-// Let's simplify the status enum for clarity
-enum AuthStatus {
-  initializing, // The initial state, while we are checking for a token.
-  authenticated, // The user is logged in.
-  unauthenticated, // The user is logged out or it's their first time.
-}
+/// -----------------------------------------------------------------
+/// Enums Definitions
+/// -----------------------------------------------------------------
 
-// في auth_state.dart
-enum ChangePasswordStatus { initial, submitting, success, failure }
+enum AuthStatus { initializing, authenticated, unauthenticated }
 
 enum LogInStatus { initial, loading, success, failure }
 
@@ -16,140 +12,157 @@ enum GetUserStatus { initial, loading, success, failure }
 
 enum ForgetPasswordStatus { initial, submitting, success, failure }
 
+enum ChangePasswordStatus { initial, submitting, success, failure }
+
+/// Defines the status of the student registration process.
+enum StudentRegistrationStatus { initial, submitting, success, failure }
+
+/// -----------------------------------------------------------------
+/// AuthState Class
+/// -----------------------------------------------------------------
+
 final class AuthState extends Equatable {
+  // --- General Auth State ---
   final AuthStatus authStatus;
+  final UserEntity? user; // Current logged-in user
+  final Failure? failure; // General failures
 
+  // --- Login State ---
   final LogInStatus status;
-  final UserEntity? user;
-  final Failure? failure;
 
-  // --- Details State Properties (New) ---
+  // --- Get Specific User / Current User Details ---
   final GetUserStatus getUserStatus;
   final UserEntity? selectedUser;
   final Failure? getUserFailure;
 
-  // --- Operation State (New) ---
-  final Failure? logOutFailure;
+  // --- Switch Account / Get All Users State ---
+  final List<UserEntity> usersList;
+  final GetUserStatus usersListStatus;
+  final Failure? usersListFailure;
 
-  // --- Operation State (New) ---
+  // --- Password Operations (Forget & Change) ---
   final ForgetPasswordStatus forgetPasswordStatus;
-  final SuccessEntity? successEntity;
   final Failure? forgetPasswordFailure;
-  //  AuthState
+
   final ChangePasswordStatus changePasswordStatus;
   final Failure? changePasswordFailure;
 
-  /// The list of all users currently cached on the device.
-  /// Used for the "Switch Account" feature.
-  final List<UserEntity> usersList;
+  // --- Student Registration State (New) ---
+  final StudentRegistrationStatus registrationStatus;
+  final Failure? registrationFailure;
 
-  /// The status of the operation to retrieve [usersList].
-  final GetUserStatus usersListStatus;
+  // --- Shared Success Entity ---
+  final SuccessEntity? successEntity;
 
-  /// Holds the failure details if retrieving the [usersList] fails.
-  final Failure? usersListFailure;
+  // --- Logout State ---
+  final Failure? logOutFailure;
+
   const AuthState({
+    // General
     this.authStatus = AuthStatus.initializing,
-    this.status = LogInStatus.initial,
     this.user,
     this.failure,
 
-    // New
+    // Login
+    this.status = LogInStatus.initial,
+
+    // Get User
     this.getUserStatus = GetUserStatus.initial,
     this.selectedUser,
     this.getUserFailure,
 
-    // New
-    this.logOutFailure,
-
-    // New
-    this.forgetPasswordStatus = ForgetPasswordStatus.initial,
-    this.successEntity,
-    this.forgetPasswordFailure,
-    // New
-    this.changePasswordStatus = ChangePasswordStatus.initial,
-    this.changePasswordFailure,
-
-    // Initialize new fields
+    // Users List (Switch Account)
     this.usersList = const [],
     this.usersListStatus = GetUserStatus.initial,
     this.usersListFailure,
+
+    // Forget Password
+    this.forgetPasswordStatus = ForgetPasswordStatus.initial,
+    this.forgetPasswordFailure,
+
+    // Change Password
+    this.changePasswordStatus = ChangePasswordStatus.initial,
+    this.changePasswordFailure,
+
+    // Student Registration (New)
+    this.registrationStatus = StudentRegistrationStatus.initial,
+    this.registrationFailure,
+
+    // Shared Success
+    this.successEntity,
+
+    // Logout
+    this.logOutFailure,
   });
 
   AuthState copyWith({
-    LogInStatus? status,
     AuthStatus? authStatus,
     UserEntity? user,
     Failure? failure,
-
-    // New
+    LogInStatus? status,
     GetUserStatus? getUserStatus,
     UserEntity? selectedUser,
     Failure? getUserFailure,
-
-    // New
-    Failure? logOutFailure,
-
-    // New
-    ForgetPasswordStatus? forgetPasswordStatus,
-    SuccessEntity? successEntity,
-    Failure? forgetPasswordFailure,
-
-    // New
-    ChangePasswordStatus? changePasswordStatus,
-    Failure? changePasswordFailure,
-    // Add new parameters
     List<UserEntity>? usersList,
     GetUserStatus? usersListStatus,
     Failure? usersListFailure,
+    ForgetPasswordStatus? forgetPasswordStatus,
+    Failure? forgetPasswordFailure,
+    ChangePasswordStatus? changePasswordStatus,
+    Failure? changePasswordFailure,
+    // New Params
+    StudentRegistrationStatus? registrationStatus,
+    Failure? registrationFailure,
+    
+    SuccessEntity? successEntity,
+    Failure? logOutFailure,
   }) {
     return AuthState(
       authStatus: authStatus ?? this.authStatus,
-      status: status ?? this.status,
       user: user ?? this.user,
       failure: failure ?? this.failure,
-      // New
+      status: status ?? this.status,
       getUserStatus: getUserStatus ?? this.getUserStatus,
       selectedUser: selectedUser ?? this.selectedUser,
       getUserFailure: getUserFailure ?? this.getUserFailure,
-
-      // New
-      logOutFailure: logOutFailure ?? this.logOutFailure,
-
-      // New
-      forgetPasswordStatus: forgetPasswordStatus ?? this.forgetPasswordStatus,
-      successEntity: successEntity ?? this.successEntity,
-      forgetPasswordFailure:
-          forgetPasswordFailure ?? this.forgetPasswordFailure,
-      changePasswordStatus: changePasswordStatus ?? this.changePasswordStatus,
-      changePasswordFailure:
-          changePasswordFailure ?? this.changePasswordFailure,
-      // Assign new fields
       usersList: usersList ?? this.usersList,
       usersListStatus: usersListStatus ?? this.usersListStatus,
       usersListFailure: usersListFailure ?? this.usersListFailure,
+      forgetPasswordStatus: forgetPasswordStatus ?? this.forgetPasswordStatus,
+      forgetPasswordFailure: forgetPasswordFailure ?? this.forgetPasswordFailure,
+      changePasswordStatus: changePasswordStatus ?? this.changePasswordStatus,
+      changePasswordFailure: changePasswordFailure ?? this.changePasswordFailure,
+      
+      // Assign New Fields
+      registrationStatus: registrationStatus ?? this.registrationStatus,
+      registrationFailure: registrationFailure ?? this.registrationFailure,
+
+      successEntity: successEntity ?? this.successEntity,
+      logOutFailure: logOutFailure ?? this.logOutFailure,
     );
   }
 
   @override
   List<Object?> get props => [
-    authStatus,
-    status,
-    user,
-    failure,
-    getUserStatus,
-    selectedUser,
-    getUserFailure,
-    logOutFailure,
-    forgetPasswordStatus,
-    successEntity,
-    forgetPasswordFailure,
-
-    changePasswordStatus,
-    changePasswordFailure,
-
-    usersList,
-    usersListStatus,
-    usersListFailure,
-  ];
+        authStatus,
+        user,
+        failure,
+        status,
+        getUserStatus,
+        selectedUser,
+        getUserFailure,
+        usersList,
+        usersListStatus,
+        usersListFailure,
+        forgetPasswordStatus,
+        forgetPasswordFailure,
+        changePasswordStatus,
+        changePasswordFailure,
+        // Add new props
+        registrationStatus,
+        registrationFailure,
+        
+        successEntity,
+        logOutFailure,
+      ];
 }

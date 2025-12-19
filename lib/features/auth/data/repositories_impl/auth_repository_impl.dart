@@ -5,11 +5,13 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/entities/success_entity.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../domain/entities/student_applicant.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/login_request_model.dart';
+import '../models/student_applicant_model.dart';
 import '../models/user_model.dart';
 
 import 'package:injectable/injectable.dart';
@@ -243,4 +245,35 @@ final class AuthRepositoryImpl implements AuthRepository {
   /// - Returns: `true` if the user is logged in, `false` otherwise.
   @override
   Future<String> isLoggedIn() => _localDataSource.isLoggedIn();
+
+  @override
+  Future<Either<Failure, SuccessEntity>> registerStudent(
+    StudentApplicant student,
+  ) async {
+    final studentModel = StudentApplicantModel(
+      name: student.name,
+      email: student.email,
+      password: student.password,
+      bio: student.bio,
+      qualifications: student.qualifications,
+      memorizationLevel: student.memorizationLevel,
+      gender: student.gender,
+      birthDate: student.birthDate,
+      phone: student.phone,
+      phoneZone: student.phoneZone,
+      whatsapp: student.whatsapp,
+      whatsappZone: student.whatsappZone,
+      country: student.country,
+      residence: student.residence,
+    );
+
+    try {
+      final response = await _remoteDataSource.registerStudent(
+        model: studentModel,
+      );
+      return Right(response.toEntity());
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
 }

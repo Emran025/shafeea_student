@@ -4,6 +4,7 @@ import 'package:shafeea/features/app/pages/splash_screen.dart';
 import 'package:shafeea/features/app/pages/welcome_screen.dart';
 import 'package:shafeea/features/home/presentation/ui/screens/home_screen.dart';
 
+import '../features/auth/presentation/ui/screens/create_student_account_page.dart';
 import '../features/home/presentation/ui/screens/student_profile_screen.dart';
 
 /// The main router configuration for the application.
@@ -35,6 +36,12 @@ final appRouter = GoRouter(
       path: '/login', // Using snake_case for consistency
       name: 'login',
       builder: (_, __) => const LogInScreen(),
+    ),
+    /// Defines the route for the login screen.
+    GoRoute(
+      path: '/register-student', // Using snake_case for consistency
+      name: 'register-student',
+      builder: (_, __) => const CreateStudentAccountPage(),
     ),
 
     /// Defines the route for the main dashboard for teacher users.

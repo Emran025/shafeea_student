@@ -1,14 +1,9 @@
-
 import '../../domain/entities/import_export.dart';
 
 String toDisplayString(dynamic anEnum) {
   switch (anEnum) {
-    case EntityType.student:
-      return 'بيانات الطلاب';
-    case EntityType.teacher:
-      return 'بيانات المعلمين';
-    case EntityType.halaqa:
-      return 'بيانات الحلقات';
+    case EntityType.followUpReport:
+      return 'بيانات المتابعات';
     case DataExportFormat.csv:
       return 'CSV';
     case DataExportFormat.json:

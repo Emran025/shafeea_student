@@ -47,7 +47,7 @@ class WelcomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 32),
                       const Text(
-                        'مرحبًا بك في \nأكاديمية تاج الوقار',
+                        'مرحبًا بك في \nأكاديمية شفيع',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 26,
@@ -83,7 +83,27 @@ class WelcomeScreen extends StatelessWidget {
                           shadowColor: AppColors.accent38,
                         ),
                         child: Text(
-                          'ابدأ الآن',
+                          'تسجيل الدخول',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      ElevatedButton(
+                        onPressed: () => context.go('/register-student'),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 8,
+                          shadowColor: AppColors.accent38,
+                        ),
+                        child: Text(
+                          'انشاء حساب',
                           style: TextStyle(
                             fontSize: 18,
                             color: Theme.of(context).colorScheme.primary,

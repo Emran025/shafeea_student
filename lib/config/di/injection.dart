@@ -4,6 +4,7 @@ import 'package:injectable/injectable.dart';
 // Import your features' use cases and BLoCs here.
 // Grouping by feature improves readability.
 
+import '../../features/auth/domain/usecases/register_student_usecase.dart';
 import '../../features/daily_tracking/domain/usecases/save_task_progress.dart';
 import '../../features/home/domain/usecases/delete_student_usecase.dart';
 import '../../features/daily_tracking/domain/usecases/generate_follow_up_report_use_case.dart';
@@ -70,6 +71,7 @@ abstract class BlocModule {
     GetAllUsersUseCase getAllUsersUC,
 
     SwitchUserUseCase switchUserUC,
+    RegisterStudentUseCase registerStudentUC,
   ) {
     // The cascade operator (..) allows us to call a method on the new instance
     // before returning it, making initial event dispatching clean.
@@ -81,6 +83,7 @@ abstract class BlocModule {
       changePasswordUC,
       switchUserUC,
       getAllUsersUC,
+      registerStudentUC,
     );
   }
 

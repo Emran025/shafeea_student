@@ -54,6 +54,8 @@ import 'package:shafeea/features/auth/domain/usecases/login_usecase.dart'
     as _i250;
 import 'package:shafeea/features/auth/domain/usecases/logout_usecase.dart'
     as _i871;
+import 'package:shafeea/features/auth/domain/usecases/register_student_usecase.dart'
+    as _i268;
 import 'package:shafeea/features/auth/domain/usecases/switch_user_usecase.dart'
     as _i741;
 import 'package:shafeea/features/auth/presentation/bloc/auth_bloc.dart'
@@ -367,6 +369,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1045.GetAllUsersUseCase>(
       () => _i1045.GetAllUsersUseCase(gh<_i424.AuthRepository>()),
     );
+    gh.lazySingleton<_i268.RegisterStudentUseCase>(
+      () => _i268.RegisterStudentUseCase(gh<_i424.AuthRepository>()),
+    );
     gh.lazySingleton<_i741.SwitchUserUseCase>(
       () => _i741.SwitchUserUseCase(gh<_i424.AuthRepository>()),
     );
@@ -387,6 +392,18 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i268.GenerateFollowUpReportUseCase(
         gh<_i341.TrackingRepository>(),
         gh<_i799.FollowUpReportFactory>(),
+      ),
+    );
+    gh.factory<_i708.AuthBloc>(
+      () => blocModule.authBloc(
+        gh<_i250.LogInUseCase>(),
+        gh<_i186.CheckLogInUseCase>(),
+        gh<_i871.LogOutUseCase>(),
+        gh<_i426.ForgetPasswordUseCase>(),
+        gh<_i960.ChangePasswordUseCase>(),
+        gh<_i1045.GetAllUsersUseCase>(),
+        gh<_i741.SwitchUserUseCase>(),
+        gh<_i268.RegisterStudentUseCase>(),
       ),
     );
     gh.lazySingleton<_i634.StudentRepository>(
@@ -418,17 +435,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i2.ErrorAnalysisChartBloc>(
       () => blocModule.errorAnalysisChartBloc(
         gh<_i618.GetErrorAnalysisChartData>(),
-      ),
-    );
-    gh.factory<_i708.AuthBloc>(
-      () => blocModule.authBloc(
-        gh<_i250.LogInUseCase>(),
-        gh<_i186.CheckLogInUseCase>(),
-        gh<_i871.LogOutUseCase>(),
-        gh<_i426.ForgetPasswordUseCase>(),
-        gh<_i960.ChangePasswordUseCase>(),
-        gh<_i1045.GetAllUsersUseCase>(),
-        gh<_i741.SwitchUserUseCase>(),
       ),
     );
     gh.lazySingleton<_i546.SetStudentStatusUseCase>(

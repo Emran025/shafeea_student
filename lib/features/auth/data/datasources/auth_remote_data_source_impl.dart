@@ -8,6 +8,7 @@ import '../../../../core/error/exceptions.dart';
 import '../../../../core/models/success_model.dart';
 import '../models/auth_response_model.dart';
 import '../models/login_request_model.dart';
+import '../models/student_applicant_model.dart';
 import 'auth_remote_data_source.dart';
 import 'package:injectable/injectable.dart';
 
@@ -50,6 +51,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       (map) => SuccessModel.fromJson(map),
       'Invalid forget-pass response format',
     );
+  }
+
+  @override
+  Future<SuccessModel> registerStudent({required StudentApplicantModel model}) async {
+    try {
+      final json = await api.post(
+      EndPoint.applicants, // ستحتاج لتعريف هذا ال endpoint
+      data: model.toJson(),
+    );
+
+    return _validateAndParse<SuccessModel>(
+      json,
+      (map) => SuccessModel.fromJson(map),
+      'Invalid change-password response format',
+    );
+
+
+
+
+    } catch (e) {
+      rethrow;
+    }
   }
 
   @override

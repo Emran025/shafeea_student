@@ -4,6 +4,7 @@ import '../../../../core/entities/success_entity.dart';
 import '../../../../core/error/failures.dart';
 // import '../../domain/entities/login_credentials_entity.dart';
 import '../../domain/entities/login_credentials_entity.dart';
+import '../../domain/entities/student_applicant.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/change_password_usecase.dart';
 import '../../domain/usecases/forget_password_usecase.dart';
@@ -12,6 +13,7 @@ import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/check_login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/switch_user_usecase.dart';
+import '../../domain/usecases/register_student_usecase.dart';
 
 part 'auth_state.dart';
 part 'auth_event.dart';
@@ -21,6 +23,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final CheckLogInUseCase checkLogInUC;
   final LogOutUseCase logOutUC;
   final ForgetPasswordUseCase forgetPasswordUC;
+  final RegisterStudentUseCase registerStudentUC;
 
   final ChangePasswordUseCase changePasswordUC;
 // Dependency Injection
@@ -35,6 +38,8 @@ final SwitchUserUseCase switchUserUC;
     this.changePasswordUC,
     this.switchUserUC, // Add this
     this.getAllUsersUC,
+    this.registerStudentUC,
+
   ) : super(AuthState()) {
     on<LogInRequested>(_onLogIn);
 
@@ -45,6 +50,8 @@ final SwitchUserUseCase switchUserUC;
     on<LogOutRequested>(_logOut);
     on<ChangePasswordRequested>(_onChangePassword);
     on<GetAllUsersRequested>(_onGetAllUsers);
+    on<SubmitStudentRegistration>(_onSubmitRegistration);
+
     on<SwitchUserRequested>(_onSwitchUser); // Register handler
 
   }
@@ -238,6 +245,36 @@ final SwitchUserUseCase switchUserUC;
           // Ensure the app knows we are authenticated
           authStatus: AuthStatus.authenticated,
           status: LogInStatus.success,
+        ),
+      ),
+    );
+  }/// Handles the student registration submission within the AuthBloc.
+  /// 
+  /// It transitions the [registrationStatus] to [StudentRegistrationStatus.submitting],
+  /// executes the registration use case, and updates the state based on the result.
+  Future<void> _onSubmitRegistration(
+    SubmitStudentRegistration event,
+    Emitter<AuthState> emit,
+  ) async {
+    // 1. Update state to "submitting" to show loading indicator.
+    emit(state.copyWith(registrationStatus: StudentRegistrationStatus.submitting));
+
+    // 2. Execute the UseCase with the provided student data.
+    // Ensure 'registerStudentUC' is injected into AuthBloc constructor.
+    final result = await registerStudentUC(event.studentApplicant);
+
+    // 3. Handle the result (Success or Failure).
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          registrationStatus: StudentRegistrationStatus.failure,
+          registrationFailure: failure,
+        ),
+      ),
+      (successEntity) => emit(
+        state.copyWith(
+          registrationStatus: StudentRegistrationStatus.success,
+          successEntity: successEntity,
         ),
       ),
     );

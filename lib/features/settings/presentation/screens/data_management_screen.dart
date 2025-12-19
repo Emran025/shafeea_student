@@ -353,7 +353,7 @@ class ImportDataView extends StatefulWidget {
 class _ImportDataViewState extends State<ImportDataView> {
   String? _filePath;
   String? _fileName;
-  EntityType _selectedEntityType = EntityType.student;
+  EntityType _selectedEntityType = EntityType.followUpReport;
   ConflictResolution _conflictStrategy = ConflictResolution.skip;
 
   Future<void> _pickFile() async {
@@ -463,35 +463,6 @@ class _ImportDataViewState extends State<ImportDataView> {
 
               const SizedBox(height: 24),
 
-              // قسم اختيار نوع البيانات
-              const _SectionHeader(
-                title: 'نوع البيانات المراد استيرادها',
-                icon: Icons.category,
-              ),
-              _SettingsCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: DropdownButtonFormField<EntityType>(
-                  value: _selectedEntityType,
-                  decoration: const InputDecoration(border: InputBorder.none),
-                  items: EntityType.values.map((EntityType type) {
-                    return DropdownMenuItem<EntityType>(
-                      value: type,
-                      child: Text(toDisplayString(type)),
-                    );
-                  }).toList(),
-                  onChanged: (EntityType? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _selectedEntityType = newValue;
-                      });
-                    }
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // استراتيجية التضارب
               const _SectionHeader(
                 title: 'عند وجود تضارب (تشابه بيانات)',
                 icon: Icons.merge_type,

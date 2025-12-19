@@ -3,6 +3,7 @@
 import '../../../../core/models/success_model.dart';
 import '../models/auth_response_model.dart';
 import '../models/login_request_model.dart';
+import '../models/student_applicant_model.dart';
 
 /// Defines remote data operations for authentication.
 ///
@@ -21,4 +22,6 @@ abstract class AuthRemoteDataSource {
 
   /// Requests a password reset code.
   Future<SuccessModel> logOut();
+
+  Future<SuccessModel> registerStudent({required StudentApplicantModel model});
 }

@@ -1,6 +1,6 @@
 class EndPoint {
   static const String baseUrl =
-      "http://192.168.124.7/tag-al-waqar/public/api/v1/"; //192.168.32.92
+      "http://192.168.124.8/shafeea/public/api/v1/"; //192.168.32.92
 
   /// Endpoint for fetching a specific student's follow-up tracking records.
   /// The `{id}` placeholder will be replaced by the student's actual ID.
@@ -12,17 +12,13 @@ class EndPoint {
   static const String userProfile = "students/{id}";
   static const String accountProfile = "account/profile";
   static const String changePassword = "account/change-password";
+  static const String applicants = "students/applicants";
   static const String sessions = "account/sessions";
 
   static const String privacyPolicy = "help/privacy-policy";
   static const String faqs = "help/faqs";
   static const String tickets = "help/tickets";
   static const String termsOfUse = "help/terms-of-use";
-  static const String trackingsSync = "sync/trackings";
-
-  static String getUserDataEndPoint(id) {
-    return "user/get-user/$id";
-  }
 }
 
 class ApiKey {
