@@ -1,6 +1,7 @@
 import '../models/student_info_model.dart';
 import '../models/student_model.dart';
 import '../models/tracking_model.dart';
+import '../models/applicant_status_model.dart';
 
 /// Defines the abstract contract for the remote data source of students.
 ///
@@ -15,7 +16,6 @@ import '../models/tracking_model.dart';
 /// synchronization mechanism.
 
 abstract interface class StudentRemoteDataSource {
-
   /// Fetches a single student by their unique identifier (UUID).
   /// - [studentData]: A map containing the student's UUID and other identifying information.
   /// Returns the [StudentModel] for the specified student.
@@ -37,5 +37,5 @@ abstract interface class StudentRemoteDataSource {
   /// Returns a [Future] that completes when the deletion is successful.
   Future<void> deleteStudent(String studentId);
   Future<List<TrackingModel>> getFollowUpTrackings(String studentId);
-
+  Future<ApplicantStatusModel> getApplicantStatus();
 }

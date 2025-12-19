@@ -7,12 +7,13 @@ class EndPoint {
   static const String studentTrackings = '/students/{id}/trackings';
   static const String logIn = "auth/login";
   static const String forgetPassword = "auth/forgot-password";
+  static const String applicant = "auth/register";
+  static const String applicantStatus = "auth/applicant-status";
   static const String logOut = "auth/logout";
   static const String refreshToken = "refreshToken";
   static const String userProfile = "students/{id}";
   static const String accountProfile = "account/profile";
   static const String changePassword = "account/change-password";
-  static const String applicant = "auth/register";
   static const String sessions = "account/sessions";
 
   static const String privacyPolicy = "help/privacy-policy";

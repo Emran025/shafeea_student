@@ -5,6 +5,7 @@ import 'package:shafeea/core/api/end_ponits.dart';
 import 'package:shafeea/features/home/data/models/student_model.dart';
 import '../models/student_info_model.dart';
 import '../models/tracking_model.dart';
+import '../models/applicant_status_model.dart';
 import 'student_remote_data_source.dart';
 
 /// The concrete implementation of [StudentRemoteDataSource].
@@ -122,5 +123,40 @@ final class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
         })
         .whereType<TrackingModel>()
         .toList();
+  }
+
+  /// Fetches the current authenticated user's applicant status from the API.
+  ///
+  /// Calls `GET ${EndPoint.applicantStatus}` and parses the response into
+  /// an [ApplicantStatusModel]. This method is defensive and will tolerate
+  /// missing fields, returning reasonable defaults.
+  @override
+  Future<ApplicantStatusModel> getApplicantStatus() async {
+    final responseJson = await _apiConsumer.get(EndPoint.applicantStatus);
+
+    if (responseJson is! Map<String, dynamic>) {
+      throw const FormatException(
+        'Invalid applicant status response: expected JSON object.',
+      );
+    }
+
+    // The API returns the payload under `data` key in success responses.
+    final data = responseJson['data'] as Map<String, dynamic>?;
+
+    // If data is null, return the default 'not found' model.
+    if (data == null) {
+      return ApplicantStatusModel.fromJson(null);
+    }
+
+    // Normalize `rejection` which may be null or an object
+    final rejectionJson = data['rejection'] as Map<String, dynamic>?;
+
+    return ApplicantStatusModel.fromJson({
+      'exists': data['exists'] ?? true,
+      'role': data['role'] ?? 'applicant',
+      'status': data['status'] ?? (data['status'] as String? ?? 'Undifind'),
+      'moved_to_students_table': data['moved_to_students_table'] ?? false,
+      'rejection': rejectionJson,
+    });
   }
 }
