@@ -54,6 +54,11 @@ final class StudentSyncServiceImpl implements StudentSyncService {
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
 
+    final applicantStatus = await _remoteDataSource.getApplicantStatus();
+    if (!(applicantStatus.exists && applicantStatus.movedToStudentsTable)) {
+      return;
+    }
+
     final userProfile = await _remoteDataSource.getStudent(tenantId);
     await _localDataSource.upsertStudentInfo(userProfile);
 

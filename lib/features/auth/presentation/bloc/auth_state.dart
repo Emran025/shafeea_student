@@ -14,9 +14,6 @@ enum ForgetPasswordStatus { initial, submitting, success, failure }
 
 enum ChangePasswordStatus { initial, submitting, success, failure }
 
-/// Defines the status of the student registration process.
-enum StudentRegistrationStatus { initial, submitting, success, failure }
-
 /// -----------------------------------------------------------------
 /// AuthState Class
 /// -----------------------------------------------------------------
@@ -47,9 +44,6 @@ final class AuthState extends Equatable {
   final ChangePasswordStatus changePasswordStatus;
   final Failure? changePasswordFailure;
 
-  // --- Student Registration State (New) ---
-  final StudentRegistrationStatus registrationStatus;
-  final Failure? registrationFailure;
 
   // --- Shared Success Entity ---
   final SuccessEntity? successEntity;
@@ -84,10 +78,6 @@ final class AuthState extends Equatable {
     this.changePasswordStatus = ChangePasswordStatus.initial,
     this.changePasswordFailure,
 
-    // Student Registration (New)
-    this.registrationStatus = StudentRegistrationStatus.initial,
-    this.registrationFailure,
-
     // Shared Success
     this.successEntity,
 
@@ -111,7 +101,6 @@ final class AuthState extends Equatable {
     ChangePasswordStatus? changePasswordStatus,
     Failure? changePasswordFailure,
     // New Params
-    StudentRegistrationStatus? registrationStatus,
     Failure? registrationFailure,
     
     SuccessEntity? successEntity,
@@ -132,10 +121,6 @@ final class AuthState extends Equatable {
       forgetPasswordFailure: forgetPasswordFailure ?? this.forgetPasswordFailure,
       changePasswordStatus: changePasswordStatus ?? this.changePasswordStatus,
       changePasswordFailure: changePasswordFailure ?? this.changePasswordFailure,
-      
-      // Assign New Fields
-      registrationStatus: registrationStatus ?? this.registrationStatus,
-      registrationFailure: registrationFailure ?? this.registrationFailure,
 
       successEntity: successEntity ?? this.successEntity,
       logOutFailure: logOutFailure ?? this.logOutFailure,
@@ -158,9 +143,6 @@ final class AuthState extends Equatable {
         forgetPasswordFailure,
         changePasswordStatus,
         changePasswordFailure,
-        // Add new props
-        registrationStatus,
-        registrationFailure,
         
         successEntity,
         logOutFailure,

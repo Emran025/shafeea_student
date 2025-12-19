@@ -10,7 +10,6 @@ import 'package:shafeea/features/home/domain/entities/student_info_entity.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/error/exceptions.dart';
-import '../../../../core/models/active_status.dart';
 import '../../../daily_tracking/data/datasources/tracking_local_data_source.dart';
 import '../../../settings/domain/entities/export_config.dart';
 import '../../../settings/domain/entities/import_config.dart';
@@ -67,10 +66,6 @@ final class StudentRepositoryImpl implements StudentRepository {
       await _localDataSource.deleteStudent();
 
       // 2. Queue the delete operation for the sync engine.
-      // await _localDataSource.queueSyncOperation(
-      //   uuid: studentId,
-      //   operation: 'delete',
-      // );
 
       return const Right(unit);
     } on CacheException catch (e) {
@@ -89,14 +84,6 @@ final class StudentRepositoryImpl implements StudentRepository {
     } on CacheException catch (e) {
       return Left(CacheFailure(message: e.message));
     }
-  }
-
-  /// Returns [Right(unit)] on success, or a [Left(Failure)] on error.
-  @override
-  Future<Either<Failure, Unit>> setStudentStatus({
-    required ActiveStatus newStatus,
-  }) async {
-    return const Right(unit);
   }
 
   @override

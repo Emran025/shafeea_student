@@ -5,14 +5,12 @@ import 'package:equatable/equatable.dart';
 // import 'package:injectable/injectable.dart';
 
 import '../../../../core/error/failures.dart';
-import '../../../../core/models/active_status.dart';
 import '../../domain/entities/plan_for_the_day_entity.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/entities/student_info_entity.dart';
 import '../../domain/usecases/delete_student_usecase.dart';
 import '../../domain/usecases/get_plan_for_the_day.dart';
 import '../../domain/usecases/get_student_by_id.dart';
-import '../../domain/usecases/set_student_status_params.dart';
 import '../../domain/usecases/upsert_student_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 
@@ -24,25 +22,21 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
   final GetStudentById _getStudentInfoUC;
   final UpsertStudent _upsertStudentUC;
   final DeleteStudentUseCase _deleteStudentUC;
-  final SetStudentStatusUseCase _setStudentStatusUC;
   final GetPlanForTheDay _getPlanForTheDayUC;
 
   StudentBloc({
     required GetStudentById getStudentInfo,
     required UpsertStudent upsertStudent,
     required DeleteStudentUseCase deleteStudent,
-    required SetStudentStatusUseCase setStudentStatus,
     required GetPlanForTheDay getPlanForTheDay,
   }) : _upsertStudentUC = upsertStudent,
        _deleteStudentUC = deleteStudent,
        _getStudentInfoUC = getStudentInfo,
-       _setStudentStatusUC = setStudentStatus,
        _getPlanForTheDayUC = getPlanForTheDay,
        super(const StudentState()) {
     on<StudentUpserted>(_onUpsert, transformer: droppable());
     on<StudentDeleted>(_onDelete, transformer: droppable());
     on<StudentDetailsFetched>(_onFetchDetails, transformer: restartable());
-    on<StudentStatusChanged>(_onStatusChange, transformer: droppable());
     on<PlanForTheDayRequested>(
       _onPlanForTheDayRequested,
       transformer: droppable(),
@@ -149,30 +143,6 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     emit(state.copyWith(submissionStatus: StudentSubmissionStatus.submitting));
 
     final result = await _deleteStudentUC(NoParams());
-
-    result.fold(
-      (failure) => emit(
-        state.copyWith(
-          submissionStatus: StudentSubmissionStatus.failure,
-          submissionFailure: failure,
-        ),
-      ),
-      (_) => emit(
-        state.copyWith(submissionStatus: StudentSubmissionStatus.success),
-      ),
-    );
-  }
-
-  /// Handles changing a student's status (e.g., active, suspended).
-  Future<void> _onStatusChange(
-    StudentStatusChanged event,
-    Emitter<StudentState> emit,
-  ) async {
-    emit(state.copyWith(submissionStatus: StudentSubmissionStatus.submitting));
-
-    final result = await _setStudentStatusUC(
-      SetStudentStatusParams(newStatus: event.newStatus),
-    );
 
     result.fold(
       (failure) => emit(

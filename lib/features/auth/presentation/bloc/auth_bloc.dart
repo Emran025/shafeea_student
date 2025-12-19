@@ -257,24 +257,29 @@ final SwitchUserUseCase switchUserUC;
     Emitter<AuthState> emit,
   ) async {
     // 1. Update state to "submitting" to show loading indicator.
-    emit(state.copyWith(registrationStatus: StudentRegistrationStatus.submitting));
+    emit(state.copyWith(status: LogInStatus.initial));
 
     // 2. Execute the UseCase with the provided student data.
     // Ensure 'registerStudentUC' is injected into AuthBloc constructor.
     final result = await registerStudentUC(event.studentApplicant);
 
     // 3. Handle the result (Success or Failure).
-    result.fold(
-      (failure) => emit(
+    result.
+    fold(
+      (message) => emit(
         state.copyWith(
-          registrationStatus: StudentRegistrationStatus.failure,
-          registrationFailure: failure,
+          status: LogInStatus.failure,
+          failure: ServerFailure(message: message.message),
+          getUserFailure: ServerFailure(message: message.message),
         ),
       ),
-      (successEntity) => emit(
+      (userEntity) => emit(
         state.copyWith(
-          registrationStatus: StudentRegistrationStatus.success,
-          successEntity: successEntity,
+          status: LogInStatus.success,
+          user: userEntity,
+          selectedUser: userEntity,
+          getUserStatus: GetUserStatus.success,
+          authStatus: AuthStatus.authenticated,
         ),
       ),
     );

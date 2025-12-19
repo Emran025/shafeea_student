@@ -267,8 +267,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
                     const SizedBox(height: 40),
 
                     // --- زر التسجيل ---
-                    if (state.registrationStatus ==
-                        StudentRegistrationStatus.submitting)
+                    if (state.status == LogInStatus.loading)
                       Center(
                         child: CircularProgressIndicator(
                           color: colorScheme.primary,
@@ -395,7 +394,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
   // --- Logic Helpers ---
 
   void _handleBlocListener(BuildContext context, AuthState state) {
-    if (state.registrationStatus == StudentRegistrationStatus.success) {
+    if (state.status == LogInStatus.success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -407,12 +406,10 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
         ),
       );
       Navigator.pop(context);
-    } else if (state.registrationStatus == StudentRegistrationStatus.failure) {
+    } else if (state.status == LogInStatus.failure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            state.registrationFailure?.message ?? "حدث خطأ أثناء التسجيل",
-          ),
+          content: Text(state.failure?.message ?? "حدث خطأ أثناء التسجيل"),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -464,7 +461,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
         bio: _bioCtrl.text.isNotEmpty ? _bioCtrl.text : "طالب جديد",
         qualifications: _qualificationCtrl.text,
         memorizationLevel: int.tryParse(_memorizationCtrl.text),
-        gender: Gender.fromLabel( _genderCtrl.text),
+        gender: Gender.fromLabel(_genderCtrl.text),
         birthDate: _birthDateCtrl.text,
         phone: _phoneCtrl.text,
         phoneZone: _phoneZoneCtrl.text.replaceAll('+', ''),
@@ -472,7 +469,6 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
         whatsappZone: _whatsAppZoneCtrl.text.replaceAll('+', ''),
         country: _countryCtrl.text,
         residence: _residenceCtrl.text,
-        // تأكد من إضافة الحقول الأخرى في الـ Entity إذا لزم الأمر
       );
 
       context.read<AuthBloc>().add(

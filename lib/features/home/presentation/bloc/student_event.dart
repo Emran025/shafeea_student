@@ -47,17 +47,6 @@ final class StudentDeleted extends StudentEvent {
   List<Object> get props => [studentId];
 }
 
-// --- Custom Status Change Events ---
-
-/// Dispatched to change a student's status (e.g., accept or suspend).
-final class StudentStatusChanged extends StudentEvent {
-  final String studentId;
-  final ActiveStatus newStatus;
-  const StudentStatusChanged(this.studentId, this.newStatus);
-  @override
-  List<Object> get props => [studentId, newStatus];
-}
-
 final class PlanForTheDayRequested extends StudentEvent {
   const PlanForTheDayRequested();
 }

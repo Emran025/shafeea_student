@@ -1,7 +1,6 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/failures.dart';
-import '../../../../core/models/active_status.dart';
 import '../../../settings/domain/entities/export_config.dart';
 import '../../../settings/domain/entities/import_config.dart';
 import '../../../settings/domain/entities/import_summary.dart';
@@ -35,11 +34,6 @@ abstract interface class StudentRepository {
   /// - Right(unit) on successful deletion. `unit` is a void-like type from dartz.
   /// - Left(Failure) on error.
   Future<Either<Failure, Unit>> deleteStudent();
-
-  /// Returns [Right(unit)] on success, or a [Left(Failure)] on error.
-  Future<Either<Failure, Unit>> setStudentStatus({
-    required ActiveStatus newStatus,
-  });
 
   Future<Either<Failure, PlanForTheDayEntity>> getPlanForTheDay();
 

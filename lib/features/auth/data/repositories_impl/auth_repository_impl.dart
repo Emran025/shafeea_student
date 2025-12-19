@@ -253,7 +253,7 @@ final class AuthRepositoryImpl implements AuthRepository {
   Future<String> isLoggedIn() => _localDataSource.isLoggedIn();
 
   @override
-  Future<Either<Failure, SuccessEntity>> registerStudent(
+  Future<Either<Failure, UserEntity>> registerStudent(
     StudentApplicantEntity student,
   ) async {
     try {
@@ -283,7 +283,7 @@ final class AuthRepositoryImpl implements AuthRepository {
       );
       await _studentLocalDataSource.upsertStudentInfo(studentModel);
 
-      return Right(SuccessEntity());
+      return Right(authResponseModel.user.toUserEntity());
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }
