@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shafeea/core/models/gender.dart';
 
 // --- Architecture Imports ---
 import 'package:shafeea/features/auth/presentation/bloc/auth_bloc.dart';
@@ -113,12 +114,10 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    // استخدام الثيم الحالي (سواء كان داكن أو فاتح)
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      // الخلفية تأتي تلقائياً من الثيم
       appBar: AppBar(
         title: const Text("إنشاء حساب طالب جديد"),
         centerTitle: true,
@@ -458,14 +457,14 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      final student = StudentApplicant(
+      final student = StudentApplicantEntity(
         name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
         bio: _bioCtrl.text.isNotEmpty ? _bioCtrl.text : "طالب جديد",
         qualifications: _qualificationCtrl.text,
         memorizationLevel: int.tryParse(_memorizationCtrl.text),
-        gender: _genderCtrl.text,
+        gender: Gender.fromLabel( _genderCtrl.text),
         birthDate: _birthDateCtrl.text,
         phone: _phoneCtrl.text,
         phoneZone: _phoneZoneCtrl.text.replaceAll('+', ''),

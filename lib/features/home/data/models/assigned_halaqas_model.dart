@@ -94,4 +94,11 @@ final class AssignedHalaqasModel {
       halaqaId: entity.halaqaId,
     );
   }
+    const AssignedHalaqasModel.defaultAssigned()
+    : id = '0',
+      enrollmentId = '0',
+      name = 'الفرقان',
+      avatar = 'assets/images/logo2.png',
+      enrolledAt = '2025-07-08 22:21:36',
+      halaqaId = '0';
 }

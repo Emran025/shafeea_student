@@ -613,6 +613,7 @@ final StudentInfoEntity fakeStudentInfo = StudentInfoEntity(
   studentDetailEntity: fakeStudent,
   assignedHalaqa: AssignedHalaqasEntity(
     id: "H001",
+    halaqaId: "1",
     name: "حلقة النور",
     avatar: "",
     enrolledAt: "2025-07-08 22:21:36",

@@ -29,7 +29,6 @@ final class StudentInfoModel {
 
   // /// Creates a [StudentInfoModel] from a JSON map received from an API.
   factory StudentInfoModel.fromJson(Map<String, dynamic> json) {
-
     final studentModel = StudentModel(
       id: json['uuid'] as String? ?? (json['id'] as int? ?? 0).toString(),
       name: json['name'] as String? ?? 'Unknown Name',
@@ -64,7 +63,7 @@ final class StudentInfoModel {
     final followUpPlan = FollowUpPlanModel.fromJson(
       json['followUpPlan'] as Map<String, dynamic>,
     );
-    
+
     return StudentInfoModel(
       assignedHalaqa: assignedHalaqa,
       studentModel: studentModel,
@@ -86,6 +85,16 @@ final class StudentInfoModel {
       studentModel: StudentModel.fromEntity(student.studentDetailEntity),
       assignedHalaqa: AssignedHalaqasModel.fromEntity(student.assignedHalaqa),
       followUpPlan: FollowUpPlanModel.fromEntity(student.followUpPlan),
+    );
+  }
+
+  factory StudentInfoModel.studentWithDefaultInfo({
+    required StudentModel student,
+  }) {
+    return StudentInfoModel(
+      studentModel: student,
+      assignedHalaqa: AssignedHalaqasModel.defaultAssigned(),
+      followUpPlan: FollowUpPlanModel.defaultPlan(),
     );
   }
 }

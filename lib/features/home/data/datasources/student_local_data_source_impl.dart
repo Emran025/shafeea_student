@@ -216,7 +216,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
       additionalWhere: additionalWhere,
       additionalArgs: additionalArgs,
     );
-    
+
     final List<int> orderedIds = [];
     for (final uuid in studentIds) {
       final id = uuidToStudentIdMap[uuid];
@@ -457,7 +457,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
     try {
-      final studentInfo = await getStudentInfoById();
+      final studentInfo = await getStudentInfo();
       await _db.transaction((txn) async {
         final studentDbId = (await _fetchStudentIdsByUuids(
           dbExecutor: _db,
@@ -559,7 +559,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
   /// Fetches a single student by their ID from the local database.
   /// Returns a [StudentModel] if found, or throws a [CacheException] if   not.
   @override
-  Future<StudentModel> getStudentById() async {
+  Future<StudentModel> getStudent() async {
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
     try {
@@ -654,9 +654,9 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
   /// Fetches a single student by their ID from the local database.
   /// Returns a [StudentModel] if found, or throws a [CacheException] if   not.
   @override
-  Future<StudentInfoModel> getStudentInfoById() async {
+  Future<StudentInfoModel> getStudentInfo() async {
     try {
-      final user = await getStudentById();
+      final user = await getStudent();
 
       final assignedHalaqa = await getAssignedHalaqa();
       final followUpPlan = await getFollowUpPlan();

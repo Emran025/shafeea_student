@@ -108,4 +108,20 @@ final class FollowUpPlanModel {
       details: details,
     );
   }
+
+  // default Follow Up Plan factotry
+  factory FollowUpPlanModel.defaultPlan() {
+    return FollowUpPlanModel(
+      planId: const Uuid().v4(),
+      serverPlanId: '0',
+      frequency: Frequency.daily,
+      updatedAt: DateTime.now().toIso8601String(),
+      createdAt: DateTime.now().toIso8601String(),
+      details: [
+        PlanDetailModel.defaultDetilMemorization(),
+        PlanDetailModel.defaultDetilReview(),
+        PlanDetailModel.defaultDetilRecitation(),
+      ],
+    );
+  }
 }

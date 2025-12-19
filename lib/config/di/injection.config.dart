@@ -283,7 +283,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i341.TrackingRepository>(
       () => _i431.TrackingRepositoryImpl(
         localDataSource: gh<_i1022.TrackingLocalDataSource>(),
-        studentlocalDataSource: gh<_i155.StudentLocalDataSource>(),
+        studentLocalDataSource: gh<_i155.StudentLocalDataSource>(),
       ),
     );
     gh.lazySingleton<_i424.AuthRepository>(
@@ -291,6 +291,8 @@ extension GetItInjectableX on _i174.GetIt {
         remoteDataSource: gh<_i672.AuthRemoteDataSource>(),
         localDataSource: gh<_i234.AuthLocalDataSource>(),
         deviceInfoService: gh<_i222.DeviceInfoService>(),
+        studentLocalDataSource: gh<_i155.StudentLocalDataSource>(),
+
         networkInfo: gh<_i672.NetworkInfo>(),
       ),
     );

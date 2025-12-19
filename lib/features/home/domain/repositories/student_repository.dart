@@ -18,7 +18,7 @@ abstract interface class StudentRepository {
   /// Returns [Either<Failure, StudentDetailEntity>]:
   /// - Right(StudentDetailEntity) on success.
   /// - Left(Failure) if the student is not found or another error occurs.
-  Future<Either<Failure, StudentInfoEntity>> getStudentById();
+  Future<Either<Failure, StudentInfoEntity>> getStudentInfo();
 
   /// Creates a new student or updates an existing one.
   ///
@@ -43,7 +43,7 @@ abstract interface class StudentRepository {
 
   Future<Either<Failure, PlanForTheDayEntity>> getPlanForTheDay();
 
-    Future<Either<Failure, String>> exportFollowUpReports({
+  Future<Either<Failure, String>> exportFollowUpReports({
     required ExportConfig config,
   });
   Future<Either<Failure, ImportSummary>> importFollowUpReports({

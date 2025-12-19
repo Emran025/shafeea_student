@@ -78,7 +78,7 @@ class LogOutRequested extends AuthEvent {
 
 /// Triggered when the user submits the student registration form.
 class SubmitStudentRegistration extends AuthEvent {
-  final StudentApplicant studentApplicant;
+  final StudentApplicantEntity studentApplicant;
 
   const SubmitStudentRegistration({required this.studentApplicant});
 

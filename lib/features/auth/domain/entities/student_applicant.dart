@@ -1,13 +1,14 @@
 import 'package:equatable/equatable.dart';
+import 'package:shafeea/core/models/gender.dart';
 
-class StudentApplicant extends Equatable {
+class StudentApplicantEntity extends Equatable {
   final String name;
   final String email;
   final String password;
   final String bio;
   final String qualifications;
   final int? memorizationLevel;
-  final String? gender;
+  final Gender? gender;
   final String? birthDate;
   final String? phone;
   final String? phoneZone;
@@ -16,7 +17,7 @@ class StudentApplicant extends Equatable {
   final String? country;
   final String? residence;
 
-  const StudentApplicant({
+  const StudentApplicantEntity({
     required this.name,
     required this.email,
     required this.password,

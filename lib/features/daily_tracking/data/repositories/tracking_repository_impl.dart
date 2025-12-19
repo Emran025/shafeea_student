@@ -31,13 +31,13 @@ import '../datasources/tracking_local_data_source.dart';
 @LazySingleton(as: TrackingRepository)
 final class TrackingRepositoryImpl implements TrackingRepository {
   final TrackingLocalDataSource _localDataSource;
-  final StudentLocalDataSource _studentlocalDataSource;
+  final StudentLocalDataSource _studentLocalDataSource;
 
   TrackingRepositoryImpl({
     required TrackingLocalDataSource localDataSource,
-    required StudentLocalDataSource studentlocalDataSource,
+    required StudentLocalDataSource studentLocalDataSource,
   }) : _localDataSource = localDataSource,
-       _studentlocalDataSource = studentlocalDataSource;
+       _studentLocalDataSource = studentLocalDataSource;
 
   @override
   Future<Either<Failure, Map<TrackingType, TrackingDetailEntity>>>
@@ -117,7 +117,7 @@ final class TrackingRepositoryImpl implements TrackingRepository {
   @override
   Future<Either<Failure, FollowUpPlanEntity>> getFollowUpPlan() async {
     try {
-      final FollowUpPlanModel planModel = await _studentlocalDataSource
+      final FollowUpPlanModel planModel = await _studentLocalDataSource
           .getFollowUpPlan();
       return Right(planModel.toEntity());
     } on ServerException catch (e) {
@@ -129,7 +129,7 @@ final class TrackingRepositoryImpl implements TrackingRepository {
   Future<Either<Failure, List<TrackingEntity>>> getFollowUpTrackings() async {
     try {
       // await _syncService.performTrackingsSync();
-      final List<TrackingModel> trackingModels = await _studentlocalDataSource
+      final List<TrackingModel> trackingModels = await _studentLocalDataSource
           .getFollowUpTrackings();
       final trackingEntities = trackingModels
           .map((model) => model.toEntity())

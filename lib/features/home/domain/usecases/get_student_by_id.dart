@@ -8,12 +8,12 @@ import '../repositories/student_repository.dart';
 import 'usecase.dart';
 
 @lazySingleton
-class GetStudentById  implements UseCase<StudentInfoEntity, NoParams> {
+class GetStudentById implements UseCase<StudentInfoEntity, NoParams> {
   final StudentRepository repository;
 
   GetStudentById(this.repository);
   @override
   Future<Either<Failure, StudentInfoEntity>> call(NoParams params) async {
-    return await repository.getStudentById();
+    return await repository.getStudentInfo();
   }
 }

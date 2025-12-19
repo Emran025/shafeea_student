@@ -34,5 +34,5 @@ abstract class AuthRepository {
   /// Returns the [UserEntity] of the newly selected user upon success.
   Future<Either<Failure, UserEntity>> switchUser({required String userId});
 
-   Future<Either<Failure, SuccessEntity>> registerStudent(StudentApplicant student);
+   Future<Either<Failure, SuccessEntity>> registerStudent(StudentApplicantEntity student);
 }

@@ -12,7 +12,7 @@ class EndPoint {
   static const String userProfile = "students/{id}";
   static const String accountProfile = "account/profile";
   static const String changePassword = "account/change-password";
-  static const String applicants = "students/applicants";
+  static const String applicant = "auth/register";
   static const String sessions = "account/sessions";
 
   static const String privacyPolicy = "help/privacy-policy";

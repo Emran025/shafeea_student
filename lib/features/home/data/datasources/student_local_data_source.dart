@@ -1,6 +1,5 @@
 import 'package:shafeea/features/home/data/models/student_model.dart';
 
-
 import '../../../../core/models/sync_queue_model.dart';
 import '../../../settings/domain/entities/import_export.dart';
 import '../models/assigned_halaqas_model.dart';
@@ -59,9 +58,9 @@ abstract interface class StudentLocalDataSource {
   /// This method is used to retrieve a specific student's details.
   /// @param studentId The unique identifier of the student.
   /// @returns A [StudentModel] representing the student.
-  Future<StudentModel> getStudentById();
+  Future<StudentModel> getStudent();
   Future<AssignedHalaqasModel> getAssignedHalaqa();
-  Future<StudentInfoModel> getStudentInfoById();
+  Future<StudentInfoModel> getStudentInfo();
   Future<FollowUpPlanModel> getFollowUpPlan();
 
   /// {@template get_local_follow_up_trackings}

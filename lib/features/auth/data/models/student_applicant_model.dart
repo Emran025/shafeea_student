@@ -1,6 +1,10 @@
+import 'package:shafeea/features/home/data/models/student_model.dart';
+
+import '../../../../core/models/active_status.dart';
+import '../../../../core/models/gender.dart';
 import '../../domain/entities/student_applicant.dart';
 
-class StudentApplicantModel extends StudentApplicant {
+class StudentApplicantModel extends StudentApplicantEntity {
   const StudentApplicantModel({
     required super.name,
     required super.email,
@@ -23,11 +27,10 @@ class StudentApplicantModel extends StudentApplicant {
       'name': name,
       'email': email,
       'password': password,
-      'password_confirmation': password, // تأكيد كلمة المرور مطلوب في Laravel
       'bio': bio,
       'qualifications': qualifications,
       'memorization_level': memorizationLevel,
-      'gender': gender,
+      'gender': gender?.label ?? Gender.male.label,
       'birth_date': birthDate,
       'phone': phone,
       'phone_zone': phoneZone,
@@ -35,7 +38,50 @@ class StudentApplicantModel extends StudentApplicant {
       'whatsapp_zone': whatsappZone,
       'country': country,
       'residence': residence,
-      // الحقول الأخرى...
     };
+  }
+
+  factory StudentApplicantModel.fromEntity(StudentApplicantEntity entity) {
+    return StudentApplicantModel(
+      name: entity.name,
+      email: entity.email,
+      password: entity.password,
+      bio: entity.bio,
+      qualifications: entity.qualifications,
+      memorizationLevel: entity.memorizationLevel,
+      gender: entity.gender,
+      birthDate: entity.birthDate,
+      phone: entity.phone,
+      phoneZone: entity.phoneZone,
+      whatsapp: entity.whatsapp,
+      whatsappZone: entity.whatsappZone,
+      country: entity.country,
+      residence: entity.residence,
+    );
+  }
+
+  // to Student Model
+  StudentModel toStudentModel(String id) {
+    return StudentModel(
+      id: id,
+      name: name,
+      email: email,
+      bio: bio,
+      memorizationLevel: memorizationLevel.toString(),
+      gender: gender?? Gender.male,
+      birthDate: birthDate ?? DateTime.now().toString(),
+      phone: phone??'',
+      phoneZone: phoneZone,
+      whatsappPhone: whatsapp,
+      whatsappZone: whatsappZone,
+      country: country??'',
+      residence: residence??'',
+      experienceYears: 0,
+      city : '',
+      qualification: qualifications
+      ,
+      status: ActiveStatus .inactive,
+      isDeleted:false
+    );
   }
 }

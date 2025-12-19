@@ -92,23 +92,22 @@ abstract class BlocModule {
   @factoryMethod
   AppSetupCubit appSetupCubit() => AppSetupCubit();
   @factoryMethod
- 
   /// Provides the [StudentBloc] and immediately dispatches [FetchAllStudentsEvent]
   /// to pre-fetch data.
   @factoryMethod
   StudentBloc studentBloc(
     UpsertStudent upsertStudent,
     DeleteStudentUseCase deleteStudent,
-    GetStudentById getStudentById,
+    GetStudentById getStudentInfo,
     SetStudentStatusUseCase setStudentStatus,
-    GetPlanForTheDay getPlanForTheDay
+    GetPlanForTheDay getPlanForTheDay,
   ) {
     return StudentBloc(
       upsertStudent: upsertStudent,
       deleteStudent: deleteStudent,
-      getStudentById: getStudentById,
+      getStudentInfo: getStudentInfo,
       setStudentStatus: setStudentStatus,
-       getPlanForTheDay : getPlanForTheDay,
+      getPlanForTheDay: getPlanForTheDay,
     )..add(const StudentDetailsFetched());
   }
 
@@ -167,8 +166,7 @@ abstract class BlocModule {
     GetOrCreateTodayTrackingDetails getOrCreateTodayTrackingDetails,
     GetAllMistakes getAllMistakes,
     GenerateFollowUpReportUseCase generateFollowUpReportUC,
-       SaveTaskProgress saveTaskProgress,
-
+    SaveTaskProgress saveTaskProgress,
   ) {
     return TrackingSessionBloc(
       getOrCreateTodayTrackingDetails: getOrCreateTodayTrackingDetails,
@@ -177,7 +175,6 @@ abstract class BlocModule {
       generateFollowUpReportUC: generateFollowUpReportUC,
     );
   }
-
 
   @factoryMethod
   ErrorAnalysisChartBloc errorAnalysisChartBloc(

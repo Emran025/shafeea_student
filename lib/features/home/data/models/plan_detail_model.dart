@@ -55,4 +55,25 @@ final class PlanDetailModel {
       amount: entity.amount,
     );
   }
+  factory PlanDetailModel.defaultDetilMemorization() {
+    return PlanDetailModel(
+      type: TrackingType.memorization,
+      unit: TrackingUnitTyps.page,
+      amount: 1,
+    );
+  }
+  factory PlanDetailModel.defaultDetilReview() {
+    return PlanDetailModel(
+      type: TrackingType.review,
+      unit: TrackingUnitTyps.juz,
+      amount: 1,
+    );
+  }
+  factory PlanDetailModel.defaultDetilRecitation() {
+    return PlanDetailModel(
+      type: TrackingType.recitation,
+      unit: TrackingUnitTyps.juz,
+      amount: 1,
+    );
+  }
 }

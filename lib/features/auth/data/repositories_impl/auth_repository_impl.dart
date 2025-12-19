@@ -1,16 +1,19 @@
 // features/auth/data/repositories_impl/auth_repository_impl.dart
 
 import 'package:dartz/dartz.dart';
+import 'package:shafeea/features/home/data/datasources/student_local_data_source.dart';
 
 import '../../../../core/entities/success_entity.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
+import '../../../home/data/models/student_info_model.dart';
 import '../../domain/entities/student_applicant.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/login_request_model.dart';
+import '../models/register_request_model.dart';
 import '../models/student_applicant_model.dart';
 import '../models/user_model.dart';
 
@@ -36,19 +39,22 @@ final class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
   final AuthLocalDataSource
   _localDataSource; // For caching tokens and user data
+  final StudentLocalDataSource
+  _studentLocalDataSource; // For caching tokens and user data
   final DeviceInfoService _deviceInfoService;
   final NetworkInfo _networkInfo;
 
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required AuthLocalDataSource localDataSource,
+    required StudentLocalDataSource studentLocalDataSource,
     required DeviceInfoService deviceInfoService,
     required NetworkInfo networkInfo,
   }) : _remoteDataSource = remoteDataSource,
        _localDataSource = localDataSource,
+       _studentLocalDataSource = studentLocalDataSource,
        _deviceInfoService = deviceInfoService,
        _networkInfo = networkInfo;
-
   @override
   Future<Either<Failure, UserEntity>> logIn({
     required LogInCredentialsEntity credentials,
@@ -248,30 +254,36 @@ final class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, SuccessEntity>> registerStudent(
-    StudentApplicant student,
+    StudentApplicantEntity student,
   ) async {
-    final studentModel = StudentApplicantModel(
-      name: student.name,
-      email: student.email,
-      password: student.password,
-      bio: student.bio,
-      qualifications: student.qualifications,
-      memorizationLevel: student.memorizationLevel,
-      gender: student.gender,
-      birthDate: student.birthDate,
-      phone: student.phone,
-      phoneZone: student.phoneZone,
-      whatsapp: student.whatsapp,
-      whatsappZone: student.whatsappZone,
-      country: student.country,
-      residence: student.residence,
-    );
-
     try {
-      final response = await _remoteDataSource.registerStudent(
-        model: studentModel,
+      // 1. Gather all necessary device information.
+      final deviceInfo = await _deviceInfoService.getDeviceInfo();
+      final requestModel = RegisterRequestModel.fromEntities(
+        applicantInfo: student,
+        deviceInfo: deviceInfo,
       );
-      return Right(response.toEntity());
+
+      final authResponseModel = await _remoteDataSource.registerStudent(
+        requestModel: requestModel,
+      );
+
+      // 4. Perform side effects: Cache the tokens and user data upon successful logIn.
+      await _localDataSource.cacheUser(authResponseModel.user);
+
+      await _localDataSource.cacheAuthTokens(
+        accessToken: authResponseModel.accessToken,
+        refreshToken: authResponseModel.refreshToken,
+      );
+
+      final studentModel = StudentInfoModel.studentWithDefaultInfo(
+        student: StudentApplicantModel.fromEntity(
+          student,
+        ).toStudentModel(authResponseModel.user.id.toString()),
+      );
+      await _studentLocalDataSource.upsertStudentInfo(studentModel);
+
+      return Right(SuccessEntity());
     } catch (e) {
       return Left(ServerFailure(message: e.toString()));
     }

@@ -21,30 +21,32 @@ part 'student_state.dart';
 
 // @injectable
 class StudentBloc extends Bloc<StudentEvent, StudentState> {
-
-  final GetStudentById _getStudentByIdUC;
+  final GetStudentById _getStudentInfoUC;
   final UpsertStudent _upsertStudentUC;
   final DeleteStudentUseCase _deleteStudentUC;
   final SetStudentStatusUseCase _setStudentStatusUC;
   final GetPlanForTheDay _getPlanForTheDayUC;
 
   StudentBloc({
-    required GetStudentById getStudentById,
+    required GetStudentById getStudentInfo,
     required UpsertStudent upsertStudent,
     required DeleteStudentUseCase deleteStudent,
     required SetStudentStatusUseCase setStudentStatus,
     required GetPlanForTheDay getPlanForTheDay,
-  })  : _upsertStudentUC = upsertStudent,
-        _deleteStudentUC = deleteStudent,
-        _getStudentByIdUC = getStudentById,
-        _setStudentStatusUC = setStudentStatus,
-        _getPlanForTheDayUC = getPlanForTheDay,
-        super(const StudentState()) {
+  }) : _upsertStudentUC = upsertStudent,
+       _deleteStudentUC = deleteStudent,
+       _getStudentInfoUC = getStudentInfo,
+       _setStudentStatusUC = setStudentStatus,
+       _getPlanForTheDayUC = getPlanForTheDay,
+       super(const StudentState()) {
     on<StudentUpserted>(_onUpsert, transformer: droppable());
     on<StudentDeleted>(_onDelete, transformer: droppable());
     on<StudentDetailsFetched>(_onFetchDetails, transformer: restartable());
     on<StudentStatusChanged>(_onStatusChange, transformer: droppable());
-    on<PlanForTheDayRequested>(_onPlanForTheDayRequested, transformer: droppable());
+    on<PlanForTheDayRequested>(
+      _onPlanForTheDayRequested,
+      transformer: droppable(),
+    );
   }
 
   Future<void> _onPlanForTheDayRequested(
@@ -91,7 +93,7 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     );
 
     // 2. Call the use case to fetch the data.
-    final result = await _getStudentByIdUC(NoParams());
+    final result = await _getStudentInfoUC(NoParams());
 
     // 3. Fold the result and emit either a success or failure state.
     result.fold(
@@ -109,7 +111,6 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       ),
     );
   }
-
 
   /// Handles the creation or update of a student.
   Future<void> _onUpsert(
@@ -170,10 +171,7 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     emit(state.copyWith(submissionStatus: StudentSubmissionStatus.submitting));
 
     final result = await _setStudentStatusUC(
-      SetStudentStatusParams(
-   
-        newStatus: event.newStatus,
-      ),
+      SetStudentStatusParams(newStatus: event.newStatus),
     );
 
     result.fold(
@@ -188,5 +186,4 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
       ),
     );
   }
-
 }

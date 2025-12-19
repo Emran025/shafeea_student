@@ -52,14 +52,7 @@ final class StudentRepositoryImpl implements StudentRepository {
 
       // 2. Immediately save to the local DB for instant UI feedback.
       await _localDataSource.upsertStudent(model);
-
-      // 3. Queue the operation for the next sync cycle.
-      // await _localDataSource.queueSyncOperation(
-      //   uuid: student.id,
-      //   operation: 'upsert',
-      //   payload: model.toMap(),
-      // );
-
+      
       // 5. Return the updated entity.
       return Right(student);
     } on CacheException catch (e) {
@@ -86,12 +79,12 @@ final class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
-  Future<Either<Failure, StudentInfoEntity>> getStudentById() async {
+  Future<Either<Failure, StudentInfoEntity>> getStudentInfo() async {
     // This method would typically fetch from the local data source first,
     // then potentially trigger a targeted remote fetch if needed.
     try {
       await _syncService.performTrackingsSync();
-      final model = await _localDataSource.getStudentInfoById();
+      final model = await _localDataSource.getStudentInfo();
       return Right(model.toStudentInfoEntity());
     } on CacheException catch (e) {
       return Left(CacheFailure(message: e.message));
