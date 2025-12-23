@@ -122,8 +122,7 @@ import 'package:shafeea/features/home/domain/usecases/get_plan_for_the_day.dart'
     as _i314;
 import 'package:shafeea/features/home/domain/usecases/get_student_by_id.dart'
     as _i1070;
-import 'package:shafeea/features/home/domain/usecases/set_student_status_params.dart'
-    as _i546;
+
 import 'package:shafeea/features/home/domain/usecases/upsert_student_usecase.dart'
     as _i43;
 import 'package:shafeea/features/home/presentation/bloc/student_bloc.dart'
@@ -439,9 +438,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i618.GetErrorAnalysisChartData>(),
       ),
     );
-    gh.lazySingleton<_i546.SetStudentStatusUseCase>(
-      () => _i546.SetStudentStatusUseCase(gh<_i634.StudentRepository>()),
-    );
+
     gh.factory<_i820.TrackingSessionBloc>(
       () => blocModule.trackingSession(
         gh<_i949.GetOrCreateTodayTrackingDetails>(),
@@ -471,7 +468,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i43.UpsertStudent>(),
         gh<_i564.DeleteStudentUseCase>(),
         gh<_i1070.GetStudentById>(),
-        gh<_i546.SetStudentStatusUseCase>(),
         gh<_i314.GetPlanForTheDay>(),
       ),
     );

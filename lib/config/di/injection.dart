@@ -10,7 +10,6 @@ import '../../features/home/domain/usecases/delete_student_usecase.dart';
 import '../../features/daily_tracking/domain/usecases/generate_follow_up_report_use_case.dart';
 import '../../features/home/domain/usecases/get_plan_for_the_day.dart';
 import '../../features/home/domain/usecases/get_student_by_id.dart';
-import '../../features/home/domain/usecases/set_student_status_params.dart';
 import '../../features/home/domain/usecases/upsert_student_usecase.dart';
 import '../../features/home/presentation/bloc/student_bloc.dart';
 
@@ -99,14 +98,12 @@ abstract class BlocModule {
     UpsertStudent upsertStudent,
     DeleteStudentUseCase deleteStudent,
     GetStudentById getStudentInfo,
-    SetStudentStatusUseCase setStudentStatus,
     GetPlanForTheDay getPlanForTheDay,
   ) {
     return StudentBloc(
       upsertStudent: upsertStudent,
       deleteStudent: deleteStudent,
       getStudentInfo: getStudentInfo,
-      setStudentStatus: setStudentStatus,
       getPlanForTheDay: getPlanForTheDay,
     )..add(const StudentDetailsFetched());
   }
