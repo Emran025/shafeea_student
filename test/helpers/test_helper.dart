@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:shafeea/core/api/api_consumer.dart';
 import 'package:shafeea/core/network/network_info.dart';
 import 'package:shafeea/core/services/device_info_service.dart';
+import 'package:shafeea/features/daily_tracking/domain/usecases/save_draft_mistakes_use_case.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shafeea/core/database/app_database.dart';
 import 'package:shafeea/features/auth/data/datasources/auth_local_data_source.dart';
@@ -194,6 +195,7 @@ class MockGetOrCreateTodayTrackingDetails extends Mock
     implements GetOrCreateTodayTrackingDetails {}
 
 class MockSaveTaskProgress extends Mock implements SaveTaskProgress {}
+class MocksaveDraftMistakes extends Mock implements SaveDraftMistakesUseCase {}
 
 class MockGetAllMistakes extends Mock implements GetAllMistakes {}
 

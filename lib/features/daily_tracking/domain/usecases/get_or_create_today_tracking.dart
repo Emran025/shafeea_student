@@ -8,17 +8,13 @@ import 'package:injectable/injectable.dart';
 
 // Renamed for clarity to match what it returns.
 @lazySingleton
-class GetOrCreateTodayTrackingDetails
-    
-        {
+class GetOrCreateTodayTrackingDetails {
   final TrackingRepository repository;
 
   GetOrCreateTodayTrackingDetails(this.repository);
 
-  Future<Either<Failure, Map<TrackingType, TrackingDetailEntity>>> call(
-  ) async {
-    return await repository.getOrCreateTodayDraftTrackingDetails(
-    );
+  Future<Either<Failure, Map<TrackingType, TrackingDetailEntity>>>
+  call() async {
+    return await repository.getOrCreateTodayDraftTrackingDetails();
   }
 }
-

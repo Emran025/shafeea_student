@@ -20,18 +20,21 @@ void main() {
   late MockGetAllMistakes mockGetAllMistakes;
   late MockGenerateFollowUpReportUseCase mockGenerateFollowUpReportUC;
   late MockSaveTaskProgress mockSaveTaskProgress;
+  late MocksaveDraftMistakes mockSaveDraftMistakes;
 
   setUp(() {
     mockGetOrCreateTodayTrackingDetails = MockGetOrCreateTodayTrackingDetails();
     mockGetAllMistakes = MockGetAllMistakes();
     mockGenerateFollowUpReportUC = MockGenerateFollowUpReportUseCase();
     mockSaveTaskProgress = MockSaveTaskProgress();
+    mockSaveDraftMistakes = MocksaveDraftMistakes();
 
     bloc = TrackingSessionBloc(
       getOrCreateTodayTrackingDetails: mockGetOrCreateTodayTrackingDetails,
       getAllMistakes: mockGetAllMistakes,
       generateFollowUpReportUC: mockGenerateFollowUpReportUC,
       saveTaskProgress: mockSaveTaskProgress,
+      saveDraftMistakesUC: mockSaveDraftMistakes,
     );
   });
 

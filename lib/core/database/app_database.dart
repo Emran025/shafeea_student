@@ -475,7 +475,7 @@ class AppDatabase {
       CREATE TABLE $_kMistakesTable (
         id                 INTEGER PRIMARY KEY AUTOINCREMENT,
         uuid               TEXT    NOT NULL,
-        trackingDetailId   INTEGER NOT NULL, -- FOREIGN KEY to daily_tracking_detail.id
+        trackingDetailId   INTEGER, -- FOREIGN KEY to daily_tracking_detail.id
         
         ayahId_quran       INTEGER NOT NULL, -- The ID of the ayah in the static Quran DB
         wordIndex          INTEGER NOT NULL, -- The index of the character/word

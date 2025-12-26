@@ -73,7 +73,7 @@ class MistakeModel {
   ///
   /// Requires the `parentDetailId` (the local integer ID of the parent `daily_tracking_detail` record)
   /// to establish the foreign key relationship.
-  Map<String, dynamic> toMap(int parentDetailId) {
+  Map<String, dynamic> toMap(int? parentDetailId) {
     return {
       'uuid': uuid.isEmpty ? const Uuid().v4() : uuid,
       'trackingDetailId': parentDetailId,

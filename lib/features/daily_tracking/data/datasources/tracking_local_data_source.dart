@@ -48,4 +48,6 @@ abstract class TrackingLocalDataSource {
   Future<List<BarChartDatas>> getErrorAnalysisChartData({
     required ChartFilter filter,
   });
+
+  Future<void> saveDraftMistakes({ required List<MistakeModel> mistakes});
 }

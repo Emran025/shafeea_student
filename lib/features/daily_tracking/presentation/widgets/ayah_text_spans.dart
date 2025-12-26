@@ -9,6 +9,8 @@ import 'package:shafeea/features/daily_tracking/domain/entities/mistake.dart';
 import 'package:shafeea/features/daily_tracking/presentation/bloc/tracking_session_bloc.dart';
 import 'package:shafeea/features/daily_tracking/presentation/widgets/ayah_text_span.dart';
 
+import '../../../../core/models/mistake_type.dart';
+
 class AyahTextSpans extends StatefulWidget {
   final List<Ayah> ayahsInSurah;
   final List<Mistake> allMistakes;
@@ -71,7 +73,13 @@ class _AyahaTextSpansState extends State<AyahTextSpans> {
         onWordTap: (tappedWordIndex) {
           // Safety check: Do not proceed if there is no active task detail.
           if (currentDetail == null) return;
-
+          context.read<TrackingSessionBloc>().add(
+            WordTappedForMistake(
+              ayahId: ayah.number,
+              wordIndex: tappedWordIndex,
+              newMistakeType: MistakeType.none,
+            ),
+          );
           // Safety check: Do not proceed if there is no active task detail.
         },
       );

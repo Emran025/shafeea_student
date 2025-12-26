@@ -49,6 +49,8 @@ abstract class TrackingRepository {
   });
   Future<Either<Failure, List<TrackingEntity>>> getFollowUpTrackings();
 
-
   Future<Either<Failure, FollowUpPlanEntity>> getFollowUpPlan();
+  Future<Either<Failure, Unit>> saveDraftMistakes({
+    required List<Mistake> mistakes,
+  });
 }

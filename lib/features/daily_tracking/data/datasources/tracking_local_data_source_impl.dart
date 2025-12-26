@@ -222,6 +222,51 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
   }
 
   @override
+  Future<void> saveDraftMistakes({required List<MistakeModel> mistakes}) async {
+    if (mistakes.isEmpty) return;
+
+    final db = await _appDb.database;
+    final user = await _authLocalDataSource.getUser();
+
+    // Ensure user exists to avoid null pointer exceptions
+    if (user == null) return;
+
+    final tenantId = user.id.toString();
+
+    try {
+      await db.transaction((txn) async {
+        final batch = txn.batch();
+
+        for (final mistake in mistakes) {
+          // 1. Add Delete operation to batch
+          // Optimization: Added tenantId to the WHERE clause for data safety
+          batch.delete(
+            _kMistakesTable,
+            where:
+                'ayahId_quran = ? AND wordIndex = ? AND tenant_id = ? And trackingDetailId IS NULL',
+            whereArgs: [mistake.ayahIdQuran, mistake.wordIndex, tenantId],
+          );
+
+          // 2. Prepare the map
+          final mistakeMap = mistake.toMap(null); // trackingDetailId is null
+          mistakeMap['tenant_id'] = tenantId;
+
+          // 3. Add Insert operation to batch
+          batch.insert(_kMistakesTable, mistakeMap);
+        }
+
+        // 4. Final Commit: Execute everything in one single atomic operation
+        await batch.commit(noResult: true);
+      });
+    } on DatabaseException catch (e) {
+      // Log error here (e.g., Firebase Crashlytics)
+      throw CacheException(
+        message: 'Failed to save draft tracking progress: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
   Future<List<MistakeModel>> getAllMistakes({
     TrackingType? type,
     int? fromPage,

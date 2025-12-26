@@ -21,6 +21,7 @@ import '../../domain/repositories/tracking_repository.dart';
 
 // Data Layer imports
 import '../datasources/tracking_local_data_source.dart';
+import '../models/mistake_model.dart';
 
 /// The concrete implementation of the [TrackingRepository] contract.
 ///
@@ -138,5 +139,18 @@ final class TrackingRepositoryImpl implements TrackingRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
     }
+  }
+
+  @override
+    Future<Either<Failure, Unit>> saveDraftMistakes({
+    required List<Mistake> mistakes,
+  }) async {
+    return _tryCatch<Unit>(() async {
+     final mistakeModels = mistakes.map((e)=>MistakeModel.fromEntity(e)).toList();
+       await _localDataSource.saveDraftMistakes(
+        mistakes: mistakeModels,
+      );
+      return unit;
+    });
   }
 }

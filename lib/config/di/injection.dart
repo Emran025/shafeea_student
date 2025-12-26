@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 // Grouping by feature improves readability.
 
 import '../../features/auth/domain/usecases/register_student_usecase.dart';
+import '../../features/daily_tracking/domain/usecases/save_draft_mistakes_use_case.dart';
 import '../../features/daily_tracking/domain/usecases/save_task_progress.dart';
 import '../../features/home/domain/usecases/delete_student_usecase.dart';
 import '../../features/daily_tracking/domain/usecases/generate_follow_up_report_use_case.dart';
@@ -164,12 +165,14 @@ abstract class BlocModule {
     GetAllMistakes getAllMistakes,
     GenerateFollowUpReportUseCase generateFollowUpReportUC,
     SaveTaskProgress saveTaskProgress,
+    SaveDraftMistakesUseCase  saveDraftMistakesUC,
   ) {
     return TrackingSessionBloc(
       getOrCreateTodayTrackingDetails: getOrCreateTodayTrackingDetails,
       getAllMistakes: getAllMistakes,
       saveTaskProgress: saveTaskProgress,
       generateFollowUpReportUC: generateFollowUpReportUC,
+      saveDraftMistakesUC: saveDraftMistakesUC,
     );
   }
 

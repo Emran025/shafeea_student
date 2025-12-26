@@ -57,3 +57,28 @@ final class FollowUpReportFetched extends TrackingSessionEvent {
   @override
   List<Object> get props => [];
 }
+
+// --- Mistake Interaction Events ---
+
+/// Dispatched when the user taps on a word in the Quran text to mark/unmark a mistake.
+class WordTappedForMistake extends TrackingSessionEvent {
+  final int ayahId;
+  final int wordIndex;
+  final MistakeType newMistakeType;
+
+  const WordTappedForMistake({required this.ayahId, required this.wordIndex ,required this.newMistakeType,});
+  @override
+  List<Object> get props => [ayahId, wordIndex,newMistakeType];
+}
+
+/// Dispatched from the Task Report Dialog when a teacher categorizes a mistake.
+class MistakeCategorized extends TrackingSessionEvent {
+  final String mistakeId; // The unique ID of the mistake to be updated.
+  final MistakeType newMistakeType;
+  const MistakeCategorized({
+    required this.mistakeId,
+    required this.newMistakeType,
+  });
+  @override
+  List<Object> get props => [mistakeId, newMistakeType];
+}

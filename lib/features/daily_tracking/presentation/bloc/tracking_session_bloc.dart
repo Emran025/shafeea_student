@@ -1,9 +1,12 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/tracking_unit_detail.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/models/mistake_type.dart';
 import '../../../../core/utils/data_status.dart';
 
 // Import your existing domain entities
@@ -14,6 +17,7 @@ import '../../../home/domain/entities/tracking_detail_entity.dart';
 import '../../domain/entities/mistake.dart';
 import '../../domain/usecases/get_all_mistakes.dart';
 import '../../domain/usecases/get_or_create_today_tracking.dart';
+import '../../domain/usecases/save_draft_mistakes_use_case.dart';
 import '../../domain/usecases/save_task_progress.dart';
 import '../../domain/usecases/generate_follow_up_report_use_case.dart';
 import '../view_models/follow_up_report_bundle_entity.dart';
@@ -25,39 +29,38 @@ class TrackingSessionBloc
   final GetOrCreateTodayTrackingDetails _getOrCreateTodayTrackingDetails;
   final GetAllMistakes _getAllMistakes;
   final GenerateFollowUpReportUseCase _generateFollowUpReportUC;
-    final SaveTaskProgress _saveTaskProgress;
+  final SaveTaskProgress _saveTaskProgress;
+  final SaveDraftMistakesUseCase _saveDraftMistakesUC;
 
   TrackingSessionBloc({
     required GetOrCreateTodayTrackingDetails getOrCreateTodayTrackingDetails,
     required GetAllMistakes getAllMistakes,
     required GenerateFollowUpReportUseCase generateFollowUpReportUC,
-        required SaveTaskProgress saveTaskProgress,
-
+    required SaveTaskProgress saveTaskProgress,
+    required SaveDraftMistakesUseCase saveDraftMistakesUC,
   }) : _getOrCreateTodayTrackingDetails = getOrCreateTodayTrackingDetails,
        _getAllMistakes = getAllMistakes,
        _generateFollowUpReportUC = generateFollowUpReportUC,
        _saveTaskProgress = saveTaskProgress,
+       _saveDraftMistakesUC = saveDraftMistakesUC,
 
        super(const TrackingSessionState()) {
     on<SessionStarted>(_onSessionStarted);
     on<TaskTypeChanged>(_onTaskTypeChanged);
+    on<WordTappedForMistake>(_onWordTappedForMistake);
+
     on<HistoricalMistakesRequested>(_onHistoricalMistakesRequested);
     on<RecitationRangeEnded>(_onRecitationRangeEnded);
-on<FollowUpReportFetched>(_onFetchReport, transformer: droppable());
+    on<FollowUpReportFetched>(_onFetchReport, transformer: droppable());
   }
   Future<void> _onSessionStarted(
     SessionStarted event,
     Emitter<TrackingSessionState> emit,
   ) async {
-    emit(
-      state.copyWith(
-        status: DataStatus.loading,
-      ),
-    );
+    emit(state.copyWith(status: DataStatus.loading));
 
     // Using the updated use case
-    final result = await _getOrCreateTodayTrackingDetails(
-    );
+    final result = await _getOrCreateTodayTrackingDetails();
     result.fold(
       (failure) {
         emit(
@@ -143,6 +146,64 @@ on<FollowUpReportFetched>(_onFetchReport, transformer: droppable());
     );
     await _updateStateWithNewDetail(emit, updatedDetail);
   }
+
+  void _onWordTappedForMistake(
+    WordTappedForMistake event,
+    Emitter<TrackingSessionState> emit,
+  ) async {
+    final currentTaskDetail = state.currentTaskDetail;
+
+    if (currentTaskDetail == null) return;
+
+    final List<Mistake> updatedMistakes = List.from(currentTaskDetail.mistakes);
+    final existingMistake = updatedMistakes.firstWhereOrNull(
+      (m) => m.ayahIdQuran == event.ayahId && m.wordIndex == event.wordIndex,
+    );
+
+    if (existingMistake != null) {
+      updatedMistakes.remove(existingMistake);
+    } else {
+      final newMistake = Mistake(
+        id: const Uuid().v4(),
+        trackingDetailId: "${currentTaskDetail.id}",
+        ayahIdQuran: event.ayahId,
+        wordIndex: event.wordIndex,
+        mistakeType: event.newMistakeType,
+      );
+      updatedMistakes.add(newMistake);
+    }
+
+    final updatedTaskDetail = TrackingDetailEntity(
+      id: currentTaskDetail.id,
+      uuid: currentTaskDetail.uuid,
+      trackingId: currentTaskDetail.trackingId,
+      trackingTypeId: currentTaskDetail.trackingTypeId,
+      fromTrackingUnitId: currentTaskDetail.fromTrackingUnitId,
+      toTrackingUnitId: currentTaskDetail.toTrackingUnitId,
+      actualAmount: currentTaskDetail.actualAmount,
+      comment: currentTaskDetail.comment,
+      status: currentTaskDetail.status,
+      score: currentTaskDetail.score,
+      gap: currentTaskDetail.gap,
+      createdAt: currentTaskDetail.createdAt,
+      updatedAt: currentTaskDetail.updatedAt,
+      mistakes: updatedMistakes, // <-- PASS THE UPDATED MISTAKES LIST
+    );
+    // ========================================================
+
+    final updatedProgress = Map<TrackingType, TrackingDetailEntity>.from(
+      state.taskProgress,
+    );
+
+    updatedProgress[state.currentTaskType] = updatedTaskDetail;
+
+    emit(state.copyWith(taskProgress: updatedProgress));
+
+    await _saveDraftMistakesUC(
+      updatedMistakes,
+    );
+  }
+
   // The helper method remains the same and is still very useful.
   Future<void> _updateStateWithNewDetail(
     Emitter<TrackingSessionState> emit,
@@ -170,6 +231,7 @@ on<FollowUpReportFetched>(_onFetchReport, transformer: droppable());
       (_) => emit(state.copyWith(status: DataStatus.success)),
     );
   }
+
   // In TrackingSessionBloc
   Future<void> _onHistoricalMistakesRequested(
     HistoricalMistakesRequested event,
@@ -205,7 +267,6 @@ on<FollowUpReportFetched>(_onFetchReport, transformer: droppable());
     );
   }
 
-  
   Future<void> _onFetchReport(
     FollowUpReportFetched event,
     Emitter<TrackingSessionState> emit,
@@ -221,9 +282,7 @@ on<FollowUpReportFetched>(_onFetchReport, transformer: droppable());
 
     result.fold(
       (failure) => emit(
-        state.copyWith(
-          followUpReportStatus: FollowUpReportStatus.failure,
-        ),
+        state.copyWith(followUpReportStatus: FollowUpReportStatus.failure),
       ),
       (followUpReport) {
         emit(
@@ -235,5 +294,4 @@ on<FollowUpReportFetched>(_onFetchReport, transformer: droppable());
       },
     );
   }
-
 }
