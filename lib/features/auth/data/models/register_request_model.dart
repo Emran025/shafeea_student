@@ -44,10 +44,8 @@ StudentApplicantModel applicantInfo;
   /// This method composes the final payload, nesting the device information
   /// under a `device_info` key as per the API's expected structure.
   Map<String, dynamic> toJson() {
-
-    return {
-
-      'device_info': deviceInfo.toJson(),
-    };
+    Map<String, dynamic> allApplicantInfo = applicantInfo.toJson();
+    allApplicantInfo['device_info'] = deviceInfo.toJson();
+    return allApplicantInfo;
   }
 }

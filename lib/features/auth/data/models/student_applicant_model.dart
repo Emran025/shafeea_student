@@ -29,7 +29,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
       'password': password,
       'bio': bio,
       'qualifications': qualifications,
-      'memorization_level': memorizationLevel,
+      'memorization_level': memorizationLevel ?? 0,
       'gender': gender?.label ?? Gender.male.label,
       'birth_date': birthDate,
       'phone': phone,
@@ -68,20 +68,19 @@ class StudentApplicantModel extends StudentApplicantEntity {
       email: email,
       bio: bio,
       memorizationLevel: memorizationLevel.toString(),
-      gender: gender?? Gender.male,
+      gender: gender ?? Gender.male,
       birthDate: birthDate ?? DateTime.now().toString(),
-      phone: phone??'',
+      phone: phone ?? '',
       phoneZone: phoneZone,
       whatsappPhone: whatsapp,
       whatsappZone: whatsappZone,
-      country: country??'',
-      residence: residence??'',
+      country: country ?? '',
+      residence: residence ?? '',
       experienceYears: 0,
-      city : '',
-      qualification: qualifications
-      ,
-      status: ActiveStatus .inactive,
-      isDeleted:false
+      city: '',
+      qualification: qualifications,
+      status: ActiveStatus.inactive,
+      isDeleted: false,
     );
   }
 }
