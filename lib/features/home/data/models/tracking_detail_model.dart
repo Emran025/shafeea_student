@@ -183,6 +183,7 @@ final class TrackingDetailModel {
   /// NOTE: This does NOT include the mistakes, as they are saved to a separate table.
   Map<String, dynamic> toMap(int parentTrackingId) {
     return {
+      if (id != 0) 'id': id, // Use server ID if available
       'uuid': uuid.isEmpty ? const Uuid().v4() : uuid,
       'trackingId': parentTrackingId,
       'typeId': trackingTypeId.id,

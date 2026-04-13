@@ -155,7 +155,7 @@ final class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
       'exists': data['exists'] ?? true,
       'role': data['role'] ?? 'applicant',
       'status': data['status'] ?? (data['status'] as String? ?? 'Undifind'),
-      'moved_to_students_table': data['moved_to_students_table'] ?? false,
+      'movedToStudentsTable': data['movedToStudentsTable'] ?? false,
       'rejection': rejectionJson,
     });
   }

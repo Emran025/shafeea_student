@@ -55,7 +55,7 @@ final class WorkmanagerJobServiceImpl implements BackgroundJobService {
         requiresCharging: false,
       ),
       // If a task with the same name exists, it will be replaced.
-      existingWorkPolicy: ExistingWorkPolicy.replace,
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
     );
     print('[WorkManager] Periodic sync task registered.');
   }

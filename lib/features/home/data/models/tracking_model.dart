@@ -114,7 +114,7 @@ final class TrackingModel {
   /// Requires the `enrollmentId` foreign key. Note this map does NOT include the details.
   Map<String, dynamic> toMap(int enrollmentId) {
     return {
-      // BEST PRACTICE: Convert the integer ID to a string to match the 'TEXT' schema.
+      'id': id, // Server ID becomes the primary key ID
       'uuid': id.toString(),
       'enrollmentId': enrollmentId,
       'trackDate': date,

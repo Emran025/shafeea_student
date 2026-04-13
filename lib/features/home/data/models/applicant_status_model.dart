@@ -32,7 +32,7 @@ class ApplicantStatusModel {
       exists: json['exists'] as bool? ?? false,
       role: json['role'] as String? ?? 'Undifind',
       status: json['status'] as String? ?? 'Undifind',
-      movedToStudentsTable: json['moved_to_students_table'] as bool? ?? false,
+      movedToStudentsTable: json['movedToStudentsTable'] as bool? ?? false,
       rejection: ApplicantRejectionModel.fromJson(rejectionJson),
     );
   }
@@ -41,7 +41,7 @@ class ApplicantStatusModel {
     'exists': exists,
     'role': role,
     'status': status,
-    'moved_to_students_table': movedToStudentsTable,
+    'movedToStudentsTable': movedToStudentsTable,
     'rejection': rejection?.toJson(),
   };
 }

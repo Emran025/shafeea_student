@@ -301,7 +301,7 @@ final class StudentRepositoryImpl implements StudentRepository {
         }
       }
     });
-    return const ListToCsvConverter().convert(rows);
+    return  Csv().encode(rows);
   }
 
   String _formatTrackingAsJson(Map<String, List<TrackingModel>> reports) {
@@ -315,9 +315,7 @@ final class StudentRepositoryImpl implements StudentRepository {
     String csvData,
     ConflictResolution conflictResolution,
   ) async {
-    final List<List<dynamic>> rows = const CsvToListConverter().convert(
-      csvData,
-    );
+    final List<List<dynamic>> rows = Csv().decode(csvData);
     if (rows.length < 2) {
       return Left(
         CacheFailure(

@@ -33,7 +33,7 @@ class UserProfileModel {
       user: UserModel.fromJson(json['user']),
       // The 'active_sessions' list is parsed by mapping each JSON object
       // to a UserSessionModel.
-      activeSessions: (json['active_sessions'] as List)
+      activeSessions: (json['activeSessions'] as List? ?? [])
           .map((sessionJson) => UserSessionModel.fromJson(sessionJson))
           .toList(),
     );

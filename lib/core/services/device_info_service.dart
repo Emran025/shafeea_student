@@ -44,7 +44,9 @@ final class DeviceInfoServiceImpl implements DeviceInfoService {
 
     // Safely cast the results.
     final packageInfo = results[0] as PackageInfo;
-    final timeZone = results[1] as String;
+    final timeZone = results[1] is String
+        ? results[1] as String
+        : (results[1] as dynamic).identifier.toString();
     final pushToken = results[2] as String;
     final baseDeviceInfo = results[3];
 

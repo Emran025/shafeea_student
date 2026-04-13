@@ -44,6 +44,7 @@ class AppDatabase {
   static const int _dbVersion = 1;
 
   // Table Names
+  static const String _kRolesTable = 'roles';
   static const String _kUsersTable = 'users';
   static const String _kRegistrationRequestsTable = 'registration_requests';
   static const String _kHalqasTable = 'halqas';
@@ -117,23 +118,27 @@ class AppDatabase {
     await txn.execute('''
       CREATE TABLE IF NOT EXISTS $_kEntityDailySummary (
         date TEXT  NOT NULL,
+        entity_type INTEGER NOT NULL,       -- 'teachers', 'students','halaqas' etc.
         active_count INTEGER NOT NULL,
         additions_count INTEGER NOT NULL,
         deletions_count INTEGER NOT NULL,
         last_updated INTEGER NOT NULL,
         tenant_id TEXT NOT NULL,
 
-        UNIQUE(tenant_id, date)
+        UNIQUE(tenant_id, entity_type, date),
+        FOREIGN KEY(entity_type) REFERENCES $_kRolesTable(id) ON UPDATE CASCADE ON DELETE RESTRICT
       )
     ''');
     await txn.execute('''
       CREATE TABLE IF NOT EXISTS $_kEntityCount (
         date TEXT  NOT NULL,
+        entity_type INTEGER NOT NULL,       -- 'teachers', 'students','halaqas' etc.
         count INTEGER NOT NULL,
         last_updated INTEGER NOT NULL,
         tenant_id TEXT NOT NULL,
 
-        UNIQUE(tenant_id, date)
+        UNIQUE(tenant_id, entity_type, date),
+        FOREIGN KEY(entity_type) REFERENCES $_kRolesTable(id) ON UPDATE CASCADE ON DELETE RESTRICT
       )
     ''');
   }
@@ -143,9 +148,10 @@ class AppDatabase {
   Future<void> _createSyncInfrastructureTables(Transaction txn) async {
     await txn.execute('''
     CREATE TABLE $_kSyncMetadataTable (
+        entity_type                 TEXT,       -- 'teachers', 'students', etc.
         last_server_sync_timestamp  INTEGER NOT NULL DEFAULT 0,
         tenant_id                   TEXT NOT NULL,
-        UNIQUE(tenant_id)
+        UNIQUE(tenant_id, entity_type)
       )
     ''');
 
@@ -153,6 +159,7 @@ class AppDatabase {
       CREATE TABLE $_kPendingOperationsTable (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         entity_uuid TEXT NOT NULL,
+        entity_type TEXT NOT NULL,      -- e.g., 'teacher'
         operation_type TEXT NOT NULL,   -- 'create', 'update', 'delete'
         payload TEXT,                   -- JSON string of the data for create/update
         created_at INTEGER NOT NULL,
@@ -163,6 +170,40 @@ class AppDatabase {
   }
 
   Future<void> _createLookupTables(Transaction txn) async {
+    // Roles (e.g., student, teacher)
+    await txn.execute('''
+      CREATE TABLE $_kRolesTable (
+        id     INTEGER PRIMARY KEY,
+        code   TEXT    NOT NULL UNIQUE,
+        nameAr TEXT    NOT NULL
+      )
+    ''');
+    await txn.insert(_kRolesTable, {
+      'id': 1,
+      'code': 'power_admin',
+      'nameAr': 'مشرف نظام',
+    });
+    await txn.insert(_kRolesTable, {
+      'id': 2,
+      'code': 'supervisor',
+      'nameAr': 'مشرف',
+    });
+    await txn.insert(_kRolesTable, {
+      'id': 3,
+      'code': 'teacher',
+      'nameAr': 'معلم',
+    });
+    await txn.insert(_kRolesTable, {
+      'id': 4,
+      'code': 'student',
+      'nameAr': 'طالب',
+    });
+    await txn.insert(_kRolesTable, {
+      'id': 5,
+      'code': 'Halaqa',
+      'nameAr': 'حلقة',
+    });
+
     // Units (e.g., page, juz)
     await txn.execute('''
       CREATE TABLE $_kUnitsTable (
@@ -273,6 +314,7 @@ class AppDatabase {
       CREATE TABLE $_kUsersTable (
         id                INTEGER PRIMARY KEY AUTOINCREMENT,
         uuid              TEXT    NOT NULL,
+        roleId            INTEGER NOT NULL,
         status            TEXT    NOT NULL,
         name              TEXT    NOT NULL,
         gender            INTEGER NOT NULL DEFAULT 1,
@@ -298,7 +340,8 @@ class AppDatabase {
         tenant_id         TEXT NOT NULL,
         
         UNIQUE(email, tenant_id),
-        UNIQUE(uuid, tenant_id)
+        UNIQUE(roleId, uuid, tenant_id),
+        FOREIGN KEY(roleId) REFERENCES $_kRolesTable(id) ON UPDATE CASCADE ON DELETE RESTRICT
       )
     ''');
 
@@ -385,6 +428,7 @@ class AppDatabase {
         isDeleted     INTEGER NOT NULL DEFAULT 0,
         tenant_id     TEXT NOT NULL,
 
+        UNIQUE(tenant_id, uuid),
         FOREIGN KEY(studentId) REFERENCES $_kUsersTable(id) ON DELETE CASCADE ON UPDATE CASCADE
       )
     ''');
@@ -442,6 +486,7 @@ class AppDatabase {
         isDeleted        INTEGER NOT NULL DEFAULT 0,
         tenant_id        TEXT NOT NULL,
 
+        UNIQUE(tenant_id, uuid),
         UNIQUE(tenant_id, enrollmentId, trackDate , status),
         FOREIGN KEY(enrollmentId) REFERENCES $_kHalqaStudentsTable(id) ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY(attendanceTypeId) REFERENCES $_kAttendanceTypesTable(id) ON DELETE RESTRICT ON UPDATE CASCADE
@@ -465,6 +510,7 @@ class AppDatabase {
         isDeleted          INTEGER NOT NULL DEFAULT 0,
         tenant_id          TEXT NOT NULL,
         
+        UNIQUE(tenant_id, uuid),
         UNIQUE(tenant_id, trackingId, typeId),
         FOREIGN KEY(trackingId) REFERENCES $_kDailyTrackingTable(id)   ON DELETE CASCADE ON UPDATE CASCADE,
         FOREIGN KEY(typeId)     REFERENCES $_kTrackingTypesTable(id)   ON DELETE RESTRICT ON UPDATE CASCADE
@@ -494,6 +540,7 @@ class AppDatabase {
 
   /// Creates indexes on foreign key columns to improve query performance.
   Future<void> _createIndexes(Transaction txn) async {
+    await txn.execute('CREATE INDEX idx_users_roleId ON $_kUsersTable(roleId)');
     await txn.execute(
       'CREATE INDEX idx_teacher_halqas_halqaId ON $_kTeacherHalqasTable(halqaId)',
     );

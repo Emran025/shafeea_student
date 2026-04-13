@@ -25,25 +25,13 @@ final class FollowUpPlanModel {
 
   factory FollowUpPlanModel.fromJson(Map<String, dynamic> json) {
     final detailsListJson = json['details'] as List<dynamic>? ?? [];
-    if (detailsListJson.isEmpty) {
-      return FollowUpPlanModel(
-        planId: const Uuid().v4(),
-        serverPlanId: json['PlanId'].toString(),
-        frequency: Frequency.fromLabel(json['frequency'] as String? ?? 'daily'),
-        updatedAt:
-            json['updatedAt'] as String? ?? DateTime.now().toIso8601String(),
-        createdAt:
-            json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
-        details: [],
-      );
-    }
     final details = detailsListJson
         .map((dJson) => PlanDetailModel.fromJson(dJson as Map<String, dynamic>))
         .toList();
 
     return FollowUpPlanModel(
-      planId: const Uuid().v4(),
-      serverPlanId: json['PlanId'].toString(),
+      planId: json['planId']?.toString() ?? '0',
+      serverPlanId: json['planId']?.toString() ?? '0',
       frequency: Frequency.fromLabel(json['frequency'] as String? ?? 'daily'),
       updatedAt: json['updatedAt'] as String?,
       createdAt: json['createdAt'] as String?,

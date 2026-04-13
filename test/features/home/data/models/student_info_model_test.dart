@@ -14,7 +14,7 @@ void main() {
   };
 
   const tFollowUpPlanJson = {
-    'PlanId': 101,
+    'planId': 101,
     'frequency': 'daily',
     'details': [],
   };

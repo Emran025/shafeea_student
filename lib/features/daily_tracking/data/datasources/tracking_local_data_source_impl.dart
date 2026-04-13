@@ -118,12 +118,32 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
       if (id == null) {
         throw CacheException(
           message:
-              'Could not find a matching database ID for enrollmentIds UUID: $uuid',
+              'Could not find a matching database ID for enrollmentIds studentId: $uuid',
         );
       }
       orderedIds.add(id);
     }
     return orderedIds;
+  }
+
+  Future<int> _fetchStudentIdByUuid({
+    required DatabaseExecutor dbExecutor,
+    required String uuid,
+  }) async {
+    final maps = await dbExecutor.query(
+      'users',
+      columns: ['id'],
+      where: 'uuid = ?',
+      whereArgs: [uuid],
+      limit: 1,
+    );
+
+    if (maps.isEmpty) {
+      throw CacheException(
+        message: 'Could not find local student ID for server user_id: $uuid',
+      );
+    }
+    return maps.first['id'] as int;
   }
   // =========================================================================
   //                             Core Public Methods
@@ -136,12 +156,21 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
     try {
+      // 1. Resolve the local database ID for the current user.
+      // In the local DB, the server's user_id is stored in the 'uuid' column.
+      final localStudentId = await _fetchStudentIdByUuid(
+        dbExecutor: db,
+        uuid: user.id.toString(),
+      );
+
+      // 2. Fetch the enrollment ID for this student.
       final studentEnrollmentDbId = (await _fetchEnrollmentIdsByStudentIds(
         dbExecutor: db,
-        studentIds: [user.id],
+        studentIds: [localStudentId],
         additionalWhere: 'isDeleted = ?',
         additionalArgs: [0],
       )).first;
+      
       final trackingRecord = await _findOrCreateParentDraftTracking(
         db,
         studentEnrollmentDbId,
@@ -276,9 +305,14 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
 
+    final localStudentId = await _fetchStudentIdByUuid(
+      dbExecutor: db,
+      uuid: user.id.toString(),
+    );
+
     final studentEnrollmentDbId = (await _fetchEnrollmentIdsByStudentIds(
       dbExecutor: db,
-      studentIds: [user.id],
+      studentIds: [localStudentId],
       additionalWhere: 'isDeleted = ?',
       additionalArgs: [0],
     )).first;
@@ -336,9 +370,13 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
     final db = await _appDb.database;
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
+    final localStudentId = await _fetchStudentIdByUuid(
+      dbExecutor: db,
+      uuid: user.id.toString(),
+    );
     final studentEnrollmentDbId = (await _fetchEnrollmentIdsByStudentIds(
       dbExecutor: db,
-      studentIds: [user.id],
+      studentIds: [localStudentId],
       additionalWhere: 'isDeleted = ?',
       additionalArgs: [0],
     )).first;

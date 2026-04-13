@@ -105,6 +105,7 @@ final class StudentModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': int.tryParse(id) ?? 0,
       'uuid': id,
       'name': name,
       'gender': gender.id,

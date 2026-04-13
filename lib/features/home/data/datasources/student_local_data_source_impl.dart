@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:collection/collection.dart';
 import 'package:injectable/injectable.dart';
@@ -350,9 +349,13 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     try {
       final studentMap = student.toMap();
       studentMap['tenant_id'] = tenantId;
-      studentMap['id'] = tenantId;
-      studentMap['uuid'] = tenantId;
-      _db.insert(
+      
+      // Use the server's ID as our primary key 'id' and canonical 'uuid'
+      final serverId = int.tryParse(student.id) ?? 0;
+      studentMap['id'] = serverId;
+      studentMap['uuid'] = student.id;
+
+      await _db.insert(
         _kUsersTable,
         studentMap,
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -374,7 +377,13 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     try {
       final studentMap = student.toMap(user.id);
       studentMap['tenant_id'] = tenantId;
-      _db.insert(
+      
+      // Use the server's enrollment ID as our local 'id' and 'uuid'
+      final enrollmentId = int.tryParse(student.id) ?? 0;
+      studentMap['id'] = enrollmentId;
+      studentMap['uuid'] = student.id;
+
+      await _db.insert(
         _kHalqaStudentsTable,
         studentMap,
         conflictAlgorithm: ConflictAlgorithm.replace,
@@ -382,7 +391,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     } on DatabaseException catch (e) {
       throw CacheException(
         message:
-            'Failed to save  Assigned student in Halaqas (${student.id}): ${e.toString()}',
+            'Failed to save Assigned student in Halaqas (${student.id}): ${e.toString()}',
       );
     }
   }
@@ -394,20 +403,38 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
 
     try {
       await _db.transaction((txn) async {
-        final studentEnrollmentDbId = (await _fetchEnrollmentIdsByStudentIds(
-          dbExecutor: txn,
-          studentIds: [user.id],
-          additionalWhere: 'isDeleted = ?',
-          additionalArgs: [0],
-        )).first;
+        // Use server IDs directly as they now match our local IDs
+        final serverUserId = int.tryParse(tenantId) ?? 0;
+        
+        // Resolve enrollment ID from the database using serverUserId
+        // (Even if they are the same, we need to make sure the record exists)
+        final enrollmentIdMaps = await txn.query(
+          _kHalqaStudentsTable,
+          columns: ['id'],
+          where: 'studentId = ? AND isDeleted = ? AND tenant_id = ?',
+          whereArgs: [serverUserId, 0, tenantId],
+        );
 
-        final followUpPlanMap = followUpPlan.toPlanDbMap(studentEnrollmentDbId);
+        if (enrollmentIdMaps.isEmpty) {
+           throw CacheException(message: 'Enrollment not found for user $tenantId');
+        }
+        final studentEnrollmentId = enrollmentIdMaps.first['id'] as int;
+
+        final followUpPlanMap = followUpPlan.toPlanDbMap(studentEnrollmentId);
         followUpPlanMap['tenant_id'] = tenantId;
+        
+        // Set the primary key 'id' to the server's planId
+        final serverPlanId = int.tryParse(followUpPlan.planId) ?? 0;
+        followUpPlanMap['id'] = serverPlanId;
+        followUpPlanMap['uuid'] = followUpPlan.planId;
+
         await txn.insert(
           _kFollowUpPlansTable,
           followUpPlanMap,
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
+
+        // Soft delete old details for this plan BEFORE inserting/updating
         await txn.update(
           _kPlanDetailsTable,
           {
@@ -421,16 +448,18 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
         for (final detail in followUpPlan.details) {
           final detailMap = detail.toMap(planUuid: followUpPlan.planId);
           detailMap['tenant_id'] = tenantId;
+          // Note: Detail models might not have IDs yet if new, 
+          // but if they do (from server), they should be used.
           await txn.insert(
-            _kPlanDetailsTable, // جدول التفاصيل
-            detailMap, // تمرير planId للربط
+            _kPlanDetailsTable,
+            detailMap,
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
         }
       });
     } on DatabaseException catch (e) {
       throw CacheException(
-        message: 'Failed to save student followUpPlan (): ${e.toString()}',
+        message: 'Failed to save follow-up plan: ${e.toString()}',
       );
     }
   }
@@ -565,7 +594,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     try {
       final maps = await _db.query(
         _kUsersTable,
-        where: 'id = ? AND isDeleted = ? AND tenant_id = ?',
+        where: 'uuid = ? AND isDeleted = ? AND tenant_id = ?',
         whereArgs: [tenantId, 0, tenantId],
       );
 
@@ -737,75 +766,73 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
   }) async {
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
-    await _db.delete(_kDailyTrackingTable);
-    await _db.delete(_kDailyTrackingDetailTable);
+    final serverUserId = int.tryParse(tenantId) ?? 0;
 
-    // ROBUSTNESS: Verify the parent enrollment record exists locally first.
-    final enrollmentIds = await _fetchEnrollmentIdbyStudentUuids(
-      dbExecutor: _db,
-      uuids: [tenantId],
+    // Verify enrollment exists locally
+    final enrollmentMaps = await _db.query(
+      _kHalqaStudentsTable,
+      columns: ['id'],
+      where: 'studentId = ? AND isDeleted = ? AND tenant_id = ?',
+      whereArgs: [serverUserId, 0, tenantId],
     );
 
-    if (enrollmentIds.isEmpty) {
-      throw CacheException(
-        message:
-            'Cannot cache trackings. Parent enrollment for student UUID $tenantId not found.',
-      );
+    if (enrollmentMaps.isEmpty) {
+       // If no enrollment, we can't save trackings reliably.
+       return;
     }
-    final enrollmentId = enrollmentIds.first;
+    final localEnrollmentId = enrollmentMaps.first['id'] as int;
 
     try {
-      // ATOMICITY: Perform the entire operation within a single transaction.
       await _db.transaction((txn) async {
-        // Step 1: Cleanly delete old data. ON DELETE CASCADE will handle children.
+        // Step 1: Cleanly delete old data for this tenant.
+        await txn.delete(_kDailyTrackingTable, where: 'tenant_id = ?', whereArgs: [tenantId]);
+        await txn.delete(_kDailyTrackingDetailTable, where: 'tenant_id = ?', whereArgs: [tenantId]);
 
         // Step 2: Iterate through the new tracking data from the server.
         for (final trackingModel in trackings) {
-          // 2a. Insert the parent `daily_tracking` record and get its new local ID.
+          // Use the server's enrollmentId if provided, otherwise fallback to local verified ID.
+          final enrollmentId = trackingModel.enrollmentId != 0 ? trackingModel.enrollmentId : localEnrollmentId;
+          
           final trackingMap = trackingModel.toMap(enrollmentId);
-          log("$trackingMap");
           trackingMap['tenant_id'] = tenantId;
-          final newParentTrackingId = await txn.insert(
+          
+          await txn.insert(
             _kDailyTrackingTable,
             trackingMap,
+            conflictAlgorithm: ConflictAlgorithm.replace,
           );
 
           if (trackingModel.details.isNotEmpty) {
-            // Use a batch for inserting the mistakes for maximum efficiency.
             final mistakesBatch = txn.batch();
 
             for (final detailModel in trackingModel.details) {
-              // 2b. Insert the `daily_tracking_detail` record and get its new local ID.
-              final detailMap = detailModel.toMap(newParentTrackingId);
+              final detailMap = detailModel.toMap(trackingModel.id);
               detailMap['tenant_id'] = tenantId;
-              final newDetailId = await txn.insert(
+              
+              await txn.insert(
                 _kDailyTrackingDetailTable,
                 detailMap,
+                conflictAlgorithm: ConflictAlgorithm.replace,
               );
 
-              // 2c. If this detail has mistakes, add them to the batch.
               if (detailModel.mistakes.isNotEmpty) {
+                // Since this is cached from the server, we use the detailModel.id as parent ID
                 for (final mistakeModel in detailModel.mistakes) {
-                  // The `toMap` function needs the LOCAL ID of its parent detail.
-                  final mistakeMap = mistakeModel.toMap(newDetailId);
+                  final mistakeMap = mistakeModel.toMap(detailModel.id);
                   mistakeMap['tenant_id'] = tenantId;
                   mistakesBatch.insert(_kMistakesTable, mistakeMap);
                 }
               }
             }
-
-            // Commit all mistakes for this tracking day in one go.
             await mistakesBatch.commit(noResult: true);
           }
         }
       });
 
-      // Notify listeners that data has changed.
       _dbChangeNotifier.add(null);
     } on DatabaseException catch (e) {
       throw CacheException(
-        message:
-            'Failed to cache follow-up trackings in transaction: ${e.toString()}',
+        message: 'Failed to cache follow-up trackings: ${e.toString()}',
       );
     }
   }

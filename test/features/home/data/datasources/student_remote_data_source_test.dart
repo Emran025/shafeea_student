@@ -27,7 +27,7 @@ void main() {
         'uuid': '1',
         'name': 'Test Student',
         'halaqa': {'id': 1},
-        'followUpPlan': {'PlanId': 101},
+        'followUpPlan': {'planId': 101},
       },
     };
 
