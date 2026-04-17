@@ -1,8 +1,5 @@
 import 'dart:async';
-
-import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
-
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
@@ -53,15 +50,10 @@ final class StudentSyncServiceImpl implements StudentSyncService {
     final syncKey = 'trackings';
     final user = await _authLocalDataSource.getUser();
     final tenantId = "${user!.id}";
-
-    final applicantStatus = await _remoteDataSource.getApplicantStatus();
-    if (!(applicantStatus.exists && applicantStatus.movedToStudentsTable)) {
-      return;
+    if (!await _networkInfo.isConnected) {
+      print('[SyncService][Tracking] Skipped: No internet connection.');
     }
-
-    final userProfile = await _remoteDataSource.getStudent(tenantId);
-    await _localDataSource.upsertStudentInfo(userProfile);
-
+    
     if (_isGlobalSyncInProgress || _syncingEntityIds.contains(syncKey)) {
       print(
         '[SyncService][Trackings] Skipped: Sync for $syncKey is already in progress or a global sync is active.',
@@ -75,6 +67,14 @@ final class StudentSyncServiceImpl implements StudentSyncService {
         '[SyncService][Trackings] Starting sync for student trackings: $tenantId',
       );
 
+      final applicantStatus = await _remoteDataSource.getApplicantStatus();
+      if (!(applicantStatus.exists && applicantStatus.movedToStudentsTable)) {
+        return;
+      }
+
+      final userProfile = await _remoteDataSource.getStudent(tenantId);
+      await _localDataSource.upsertStudentInfo(userProfile);
+
       // The core logic is now wrapped in a safe, intelligent check.
 
       await _pullRemoteFollowUpTrackingsChanges(studentId: tenantId);
@@ -83,10 +83,9 @@ final class StudentSyncServiceImpl implements StudentSyncService {
       );
     } on CacheException catch (e) {
       print('[SyncService][Trackings] Cache Error: ${e.message}');
-    } on DioException catch (e) {
-      print(
-        '[SyncService][Trackings] Network Error: Could not complete sync. ${e.message}',
-      );
+    } on ServerException catch (e) {
+      print('[SyncService][Trackings] Server Error: ${e.message} (Code: ${e.statusCode})');
+      // If code is 401, we might want to trigger a logout, but for now we just log it.
     } catch (e) {
       print(
         '[SyncService][Trackings] An unexpected error occurred: $e. Aborting.',

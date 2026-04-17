@@ -277,7 +277,8 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
           );
 
           // 2. Prepare the map
-          final mistakeMap = mistake.toMap(null); // trackingDetailId is null
+          // Use the trackingDetailId from the mistake model itself.
+          final mistakeMap = mistake.toMap(int.tryParse(mistake.trackingDetailId));
           mistakeMap['tenant_id'] = tenantId;
 
           // 3. Add Insert operation to batch

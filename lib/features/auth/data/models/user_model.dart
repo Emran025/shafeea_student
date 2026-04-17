@@ -17,21 +17,21 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      phone: json['phone'],
+      id: json['id'] ?? 0,
+      name: json['name'] ?? 'Unknown',
+      email: json['email'] ?? '',
+      phone: json['phone'] ?? '',
       avatar: json['avatar'],
     );
   }
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      id: map['id'],
-      name: map['name'],
-      email: map['email'],
+      id: map['id'] ?? 0,
+      name: map['name'] ?? 'Unknown',
+      email: map['email'] ?? '',
       avatar: map['avatar'],
-      phone: map['phone'],
+      phone: map['phone'] ?? '',
     );
   }
 
