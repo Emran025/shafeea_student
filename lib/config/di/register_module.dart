@@ -11,10 +11,7 @@ import 'package:shafeea/core/api/api_consumer.dart';
 import 'package:shafeea/core/api/dio_consumer.dart';
 import 'package:shafeea/core/api/end_ponits.dart';
 import 'package:shafeea/core/database/app_database.dart';
-import 'package:shafeea/core/network/network_info.dart';
 import 'package:workmanager/workmanager.dart';
-
-import '../../core/api/interceptors/token_refresh_interceptor.dart'; // Import the contract, not the implementation
 
 /// A unique identifier for the Dio instance dedicated to token refresh operations.
 /// This named registration is crucial to prevent circular dependencies within interceptors.

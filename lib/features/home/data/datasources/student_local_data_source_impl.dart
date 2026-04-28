@@ -820,7 +820,11 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
                 for (final mistakeModel in detailModel.mistakes) {
                   final mistakeMap = mistakeModel.toMap(detailModel.id);
                   mistakeMap['tenant_id'] = tenantId;
-                  mistakesBatch.insert(_kMistakesTable, mistakeMap);
+                  mistakesBatch.insert(
+                    _kMistakesTable,
+                    mistakeMap,
+                    conflictAlgorithm: ConflictAlgorithm.replace,
+                  );
                 }
               }
             }
@@ -957,7 +961,11 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
               for (final mistakeModel in detailModel.mistakes) {
                 final mistakeMap = mistakeModel.toMap(newDetailId);
                 mistakeMap['tenant_id'] = tenantId;
-                await txn.insert(_kMistakesTable, mistakeMap);
+                await txn.insert(
+                  _kMistakesTable,
+                  mistakeMap,
+                  conflictAlgorithm: ConflictAlgorithm.replace,
+                );
               }
             }
           }

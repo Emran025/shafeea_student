@@ -238,7 +238,13 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
           for (final mistake in detail.mistakes) {
             final mistakeMap = mistake.toMap(detail.id);
             mistakeMap['tenant_id'] = tenantId;
-            batch.insert(_kMistakesTable, mistakeMap);
+            // Use replace so that re-saving the same UUID (rapid taps / re-drafts)
+            // updates the row in-place instead of throwing UNIQUE constraint.
+            batch.insert(
+              _kMistakesTable,
+              mistakeMap,
+              conflictAlgorithm: ConflictAlgorithm.replace,
+            );
           }
         }
         await batch.commit(noResult: true);
@@ -281,8 +287,13 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
           final mistakeMap = mistake.toMap(int.tryParse(mistake.trackingDetailId));
           mistakeMap['tenant_id'] = tenantId;
 
-          // 3. Add Insert operation to batch
-          batch.insert(_kMistakesTable, mistakeMap);
+          // 3. Add Insert operation to batch — replace on UUID conflict
+          // (same mistake re-marked before a commit should update, not fail).
+          batch.insert(
+            _kMistakesTable,
+            mistakeMap,
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
         }
 
         // 4. Final Commit: Execute everything in one single atomic operation

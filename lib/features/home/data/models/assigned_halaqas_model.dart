@@ -25,8 +25,8 @@ final class AssignedHalaqasModel {
   factory AssignedHalaqasModel.fromJson(Map<String, dynamic>? json) {
     return json != null
         ? AssignedHalaqasModel(
-            // Use the enrollmentId from the server as our local ID
-            id: json['enrollmentId']?.toString() ?? '0',
+            // Use the enrollmentId from the server as our local ID, fallback to 'id'
+            id: (json['enrollmentId'] ?? json['id'])?.toString() ?? '0',
             name: json['name'] as String? ?? 'Unnamed Halqa',
             avatar: json['avatar'] as String? ?? 'assets/images/logo2.png',
             enrolledAt:

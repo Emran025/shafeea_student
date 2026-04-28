@@ -53,7 +53,10 @@ class TermsOfUseModel {
     final parsedSections = parseJsonField(sectionsRaw);
     final sectionsList = parsedSections is List
         ? parsedSections
-              .map((sectionJson) => SectionModel.fromMap(sectionJson))
+              .map(
+                (sectionJson) =>
+                    SectionModel.fromMap(sectionJson as Map<String, dynamic>),
+              )
               .toList()
         : <SectionModel>[];
 

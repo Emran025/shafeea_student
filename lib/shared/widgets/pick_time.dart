@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shafeea/shared/themes/app_theme.dart';
 
 class CustomTimePicker extends StatefulWidget {
   final void Function(TimeOfDay)? onTimeSelected;
   final TextEditingController controller;
-
   final IconData icon;
   final String label;
 
@@ -13,7 +11,6 @@ class CustomTimePicker extends StatefulWidget {
     super.key,
     this.onTimeSelected,
     required this.controller,
-
     required this.icon,
     required this.label,
   });
@@ -26,85 +23,55 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
   TimeOfDay? _selectedTime;
 
   Future<void> _pickTime() async {
-    final now = TimeOfDay.now();
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     final picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTime ?? now,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             timePickerTheme: TimePickerThemeData(
-              timeSelectorSeparatorTextStyle:
-                  MaterialStateProperty.all<TextStyle>(
-                    TextStyle(fontFamily: 'Cairo'),
-                  ),
-
-              cancelButtonStyle: ButtonStyle(
-                textStyle: MaterialStateProperty.all<TextStyle>(
-                  TextStyle(fontFamily: 'Cairo'),
-                ),
-              ),
-              confirmButtonStyle: ButtonStyle(
-                textStyle: MaterialStateProperty.all<TextStyle>(
-                  TextStyle(fontFamily: 'Cairo'),
-                ),
-              ),
-              // hourMinuteTextStyle: GoogleFonts.cairo(
-              //   color: AppColors.lightCream,
-              //   fontSize: 16,
-              //   fontWeight: FontWeight.bold,
-              // ),
-              // dayPeriodTextStyle: GoogleFonts.cairo(
-              //   color: AppColors.lightCream,
-              //   fontSize: 16,
-              //   fontWeight: FontWeight.bold,
-              // ),
-              backgroundColor: AppColors.mediumDark,
-              hourMinuteTextColor: AppColors.lightCream,
-              dialHandColor: AppColors.accent,
-              dialBackgroundColor: AppColors.darkBackground,
+              backgroundColor:
+                  isDark ? AppColors.mediumDark : Colors.white,
+              hourMinuteTextColor: colorScheme.onSurface,
+              dialHandColor: colorScheme.primary,
+              dialBackgroundColor: isDark
+                  ? AppColors.darkBackground
+                  : colorScheme.primary.withOpacity(0.08),
               dialTextColor: MaterialStateColor.resolveWith(
                 (states) => states.contains(MaterialState.selected)
-                    ? AppColors.darkBackground
-                    : AppColors.lightCream,
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurface,
               ),
-              entryModeIconColor: AppColors.accent,
-              helpTextStyle: GoogleFonts.cairo(
-                color: AppColors.lightCream,
-                fontSize: 16,
+              entryModeIconColor: colorScheme.primary,
+              helpTextStyle: TextStyle(
+                fontFamily: 'Cairo',
+                color: colorScheme.onSurface.withOpacity(0.7),
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
               hourMinuteShape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
               hourMinuteColor: MaterialStateColor.resolveWith(
                 (states) => states.contains(MaterialState.selected)
-                    ? AppColors.accent
-                    : AppColors.mediumDark38,
+                    ? colorScheme.primary
+                    : colorScheme.onSurface.withOpacity(0.08),
+              ),
+              cancelButtonStyle: ButtonStyle(
+                textStyle: MaterialStateProperty.all(
+                  const TextStyle(fontFamily: 'Cairo'),
+                ),
+              ),
+              confirmButtonStyle: ButtonStyle(
+                textStyle: MaterialStateProperty.all(
+                  const TextStyle(fontFamily: 'Cairo'),
+                ),
               ),
             ),
-            textTheme: TextTheme(
-              titleMedium: GoogleFonts.cairo(
-                color: AppColors.lightCream,
-                fontSize: 16,
-              ),
-              bodyMedium: GoogleFonts.cairo(
-                color: AppColors.lightCream,
-                fontSize: 14,
-              ),
-            ),
-            colorScheme: ColorScheme.dark(
-              primary: AppColors.accent,
-              onPrimary: AppColors.lightCream,
-              surface: AppColors.mediumDark,
-              onSurface: AppColors.lightCream,
-              background: AppColors.darkBackground,
-              onBackground: AppColors.lightCream,
-              secondary: AppColors.lightCream,
-              onSecondary: Colors.black,
-              error: AppColors.error,
-              onError: AppColors.lightCream,
-            ),
+            colorScheme: colorScheme,
           ),
           child: child!,
         );
@@ -113,47 +80,68 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
 
     if (picked != null && picked != _selectedTime) {
       setState(() => _selectedTime = picked);
-      if (widget.onTimeSelected != null) {
-        widget.onTimeSelected!(picked);
-      }
+      widget.onTimeSelected?.call(picked);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // node ??= FocusNode(); // create one if none provided
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12, left: 14),
+      padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: widget.controller,
         readOnly: true,
         keyboardType: TextInputType.none,
-        style: GoogleFonts.cairo(color: AppColors.lightCream, fontSize: 12),
-        cursorColor: AppColors.lightCream,
+        style: TextStyle(
+          color: colorScheme.onSurface,
+          fontSize: 14,
+          fontFamily: 'Cairo',
+          fontWeight: FontWeight.w600,
+        ),
+        cursorColor: colorScheme.primary,
         decoration: InputDecoration(
-          hintStyle: GoogleFonts.cairo(color: AppColors.lightCream70),
           labelText: widget.label,
-          prefixStyle: GoogleFonts.cairo(
-            color: AppColors.lightCream70,
-            fontSize: 15,
+          labelStyle: TextStyle(
+            color: colorScheme.onSurface.withOpacity(0.55),
+            fontFamily: 'Cairo',
+            fontSize: 13,
           ),
-          labelStyle: GoogleFonts.cairo(color: AppColors.lightCream70),
-          prefixIcon: Icon(widget.icon, color: AppColors.accent70),
+          prefixIcon: Icon(
+            widget.icon,
+            color: colorScheme.primary.withOpacity(0.75),
+            size: 20,
+          ),
           filled: true,
-          fillColor: AppColors.lightCream.withOpacity(0.1),
+          fillColor: isDark
+              ? colorScheme.onSurface.withOpacity(0.07)
+              : colorScheme.primary.withOpacity(0.04),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: AppColors.mediumDark87,
-              width: 2,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: colorScheme.onSurface.withOpacity(0.1),
+              width: 1,
             ),
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: colorScheme.primary,
+              width: 1.8,
+            ),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 15,
+          ),
         ),
-        onTap: () => _pickTime(),
+        onTap: _pickTime,
       ),
     );
   }

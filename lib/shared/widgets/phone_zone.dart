@@ -1,14 +1,7 @@
-import 'dart:ui';
-
 import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'package:google_fonts/google_fonts.dart';
-import 'package:shafeea/shared/themes/app_theme.dart';
-import 'package:shafeea/core/constants/countries_names.dart';
 import 'package:shafeea/core/models/countery_model.dart';
-
 import 'package:shafeea/shared/widgets/country_picker_dialog.dart';
 
 class PhoneZoneForm extends StatefulWidget {
@@ -32,208 +25,26 @@ class PhoneZoneForm extends StatefulWidget {
 }
 
 class _PhoneZoneFormState extends State<PhoneZoneForm> {
-  late TextEditingController controller;
   late CountryModel selectedCountry;
-
-  final int fieldCount = 2;
-  List<TextEditingController> controllers = [];
-  final List<FocusNode> focusNodes = [];
+  final FocusNode _zoneFocus = FocusNode();
+  final FocusNode _phoneFocus = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    for (int i = 0; i < fieldCount; i++) {
-      focusNodes.add(FocusNode());
-    }
-    controllers = [widget.zoneController, widget.phoneController];
     selectedCountry = widget.initialCountry;
-    controller = TextEditingController();
-    super.initState();
   }
 
   @override
   void dispose() {
-    for (var controller in controllers) {
-      controller.dispose();
-    }
-    for (var node in focusNodes) {
-      node.dispose();
-    }
+    // Do NOT dispose widget.zoneController / widget.phoneController —
+    // they are owned by the parent widget.
+    _zoneFocus.dispose();
+    _phoneFocus.dispose();
     super.dispose();
   }
 
-  void _handleInput(int index) {
-    if (index < fieldCount - 1) {
-      focusNodes[index + 1].requestFocus();
-    } else {
-      focusNodes[index].unfocus();
-    }
-  }
-
-  void _handleKey(RawKeyEvent event, int index) {
-    if (event is RawKeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace &&
-        controllers[index].text.isEmpty &&
-        index > 0) {
-      focusNodes[index - 1].requestFocus();
-      if (controllers[index - 1].text.isNotEmpty) {
-        controllers[index - 1].text = controllers[index - 1].text.replaceRange(
-          controllers[index - 1].text.length - 1,
-          null,
-          '',
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Container(
-        height: 50,
-        margin: const EdgeInsets.only(bottom: 12, left: 14),
-        // padding: const EdgeInsets.all(8),
-        alignment: AlignmentDirectional.center,
-        decoration: BoxDecoration(
-          color: AppColors.lightCream.withOpacity(0.1),
-
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: size.width / 4,
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      _changeDialog(controller, "رمز الدولة");
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Flag.fromString(
-                        selectedCountry.status,
-                        height: 18,
-                        width: 24,
-                      ),
-                    ),
-                  ),
-
-                  Text(
-                    "+",
-                    style: GoogleFonts.cairo(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.lightCream,
-                    ),
-                  ),
-
-                  Expanded(
-                    child: RawKeyboardListener(
-                      focusNode: FocusNode(), // for listening to backspace
-                      onKey: (event) => _handleKey(event, 0),
-
-                      child: TextFormField(
-                        controller: controllers[0],
-                        focusNode: focusNodes[0],
-                        maxLength: 5,
-                        buildCounter:
-                            (
-                              context, {
-                              required currentLength,
-                              required isFocused,
-                              required maxLength,
-                            }) => null,
-
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) {
-                          setState(() {
-                            print(val);
-                            countries.forEach((element) {
-                              if (element.countryCallingCode ==
-                                  widget.zoneController.text) {
-                                widget.zoneController.text =
-                                    element.countryCallingCode;
-                                selectedCountry = element;
-                                widget.onCountryChanged;
-                                _handleInput(0);
-                              }
-                            });
-                          });
-                        },
-
-                        decoration: InputDecoration(
-                          filled: false,
-                          contentPadding: EdgeInsets.only(right: 8),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              "|",
-              style: GoogleFonts.cairo(
-                fontSize: 25,
-                color: AppColors.lightCream26,
-              ),
-            ),
-            Expanded(
-              child: RawKeyboardListener(
-                focusNode: FocusNode(), // for listening to backspace
-                onKey: (event) => _handleKey(event, 1),
-                child: TextFormField(
-                  controller: controllers[1],
-                  focusNode: focusNodes[1],
-                  keyboardType: TextInputType.phone,
-                  style: GoogleFonts.cairo(color: AppColors.lightCream),
-                  cursorColor: AppColors.lightCream,
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(10),
-                    hintStyle: GoogleFonts.cairo(color: AppColors.lightCream70),
-                    labelText: widget.label,
-                    prefixStyle: GoogleFonts.cairo(
-                      color: AppColors.lightCream70,
-                    ),
-                    labelStyle: GoogleFonts.cairo(
-                      color: AppColors.lightCream70,
-                    ),
-                    filled: false,
-                    border: OutlineInputBorder(borderSide: BorderSide.none),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-
-                  onSaved: ((val) {
-                    controller.text = val?.trim() ?? '';
-                  }),
-                  onChanged: ((val) {
-                    print(val);
-                    controller.text = val.trim();
-
-                    val.length >= 11 ? _handleInput(1) : null;
-                  }),
-                  validator: (val) => (val == null || val.isEmpty)
-                      ? " حقل ${widget.label} مطلوب"
-                      : null,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _changeDialog(TextEditingController residence, String title) {
+  void _openCountryPicker() {
     showDialog(
       context: context,
       builder: (_) => CountryPickerDialog(
@@ -242,12 +53,115 @@ class _PhoneZoneFormState extends State<PhoneZoneForm> {
           setState(() {
             selectedCountry = country;
             widget.zoneController.text = country.countryCallingCode;
-            residence.text = country.countryCallingCode;
             widget.onCountryChanged?.call();
-            _handleInput(0);
           });
+          _phoneFocus.requestFocus();
         },
         isCollingCode: true,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Container(
+          height: 54,
+          decoration: BoxDecoration(
+            color: isDark
+                ? colorScheme.onSurface.withOpacity(0.07)
+                : colorScheme.primary.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: colorScheme.onSurface.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              // ── Country flag + code ──────────────────────────────
+              GestureDetector(
+                onTap: _openCountryPicker,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flag.fromString(
+                        selectedCountry.status,
+                        height: 18,
+                        width: 26,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '+${widget.zoneController.text}',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: colorScheme.onSurface.withOpacity(0.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Divider ──────────────────────────────────────────
+              Container(
+                width: 1,
+                height: 28,
+                color: colorScheme.onSurface.withOpacity(0.15),
+              ),
+
+              // ── Phone number field ───────────────────────────────
+              Expanded(
+                child: TextFormField(
+                  controller: widget.phoneController,
+                  focusNode: _phoneFocus,
+                  keyboardType: TextInputType.phone,
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                  cursorColor: colorScheme.primary,
+                  decoration: InputDecoration(
+                    hintText: widget.label,
+                    hintStyle: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 13,
+                      color: colorScheme.onSurface.withOpacity(0.4),
+                    ),
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 14,
+                    ),
+                  ),
+                  validator: (val) => (val == null || val.isEmpty)
+                      ? "حقل ${widget.label} مطلوب"
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

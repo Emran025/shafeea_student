@@ -59,10 +59,6 @@ final class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity>> logIn({
     required LogInCredentialsEntity credentials,
   }) async {
-    if (!await _networkInfo.isConnected) {
-      print('[SyncService][Tracking] Skipped: No internet connection.');
-      return Left(DataFailure(message: 'No internet connection available.'));
-    }
     // This is the "wrapper" function that handles exceptions and network state.
     // It takes a function `body` which contains the core logic.
     return await _executeAuthOperation(() async {
@@ -181,7 +177,9 @@ final class AuthRepositoryImpl implements AuthRepository {
       }
       final user = await _localDataSource.getUser();
       if (user == null) {
-        return Left(CacheFailure(message: 'Failed to find cached user profile.'));
+        return Left(
+          CacheFailure(message: 'Failed to find cached user profile.'),
+        );
       }
       return Right(user.toUserEntity());
     } on CacheException catch (e) {

@@ -107,6 +107,9 @@ final class StudentModel {
     return {
       'id': int.tryParse(id) ?? 0,
       'uuid': id,
+      // roleId=4 corresponds to the 'student' role seeded in the local roles table.
+      // This is required because the users table has roleId INTEGER NOT NULL.
+      'roleId': 4,
       'name': name,
       'gender': gender.id,
       'birthDate': birthDate,

@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shafeea/core/models/gender.dart';
 
-// --- Architecture Imports ---
 import 'package:shafeea/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:shafeea/features/auth/domain/entities/student_applicant.dart';
 
-// --- Shared Widgets & Core ---
 import 'package:shafeea/shared/themes/app_theme.dart';
 import 'package:shafeea/core/constants/countries_names.dart';
 import 'package:shafeea/shared/func/date_format.dart';
@@ -15,7 +13,6 @@ import 'package:shafeea/shared/widgets/custom_text_field.dart';
 import 'package:shafeea/shared/widgets/phone_zone.dart';
 import 'package:shafeea/shared/widgets/pick_date.dart';
 import 'package:shafeea/shared/widgets/pick_time.dart';
-
 import '../../../../../core/models/countery_model.dart';
 
 class CreateStudentAccountPage extends StatefulWidget {
@@ -26,10 +23,11 @@ class CreateStudentAccountPage extends StatefulWidget {
       _CreateStudentAccountPageState();
 }
 
-class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
+class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
-  // --- Controllers ---
+  // ── Controllers ─────────────────────────────────────────────────
   late final TextEditingController _nameCtrl;
   late final TextEditingController _emailCtrl;
   late final TextEditingController _passCtrl;
@@ -47,16 +45,32 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
   late final TextEditingController _residenceCtrl;
   late final TextEditingController _timeCtrl;
 
-  // --- State Variables ---
+  // ── State ────────────────────────────────────────────────────────
   late CountryModel selectedPhoneZone;
   late CountryModel selectedWhatsAppZone;
   late CountryModel selectedCountry;
+
+  late final AnimationController _animCtrl;
+  late final Animation<double> _fadeAnim;
+  late final Animation<Offset> _slideAnim;
 
   @override
   void initState() {
     super.initState();
     _initControllers();
     _initCountries();
+
+    _animCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 550),
+    );
+    _fadeAnim = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut);
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut));
+
+    _animCtrl.forward();
   }
 
   void _initControllers() {
@@ -65,7 +79,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
     _passCtrl = TextEditingController();
     _confirmPassCtrl = TextEditingController();
     _bioCtrl = TextEditingController();
-    _genderCtrl = TextEditingController(text: "Male");
+    _genderCtrl = TextEditingController(text: 'Male');
     _birthDateCtrl = TextEditingController();
     _phoneCtrl = TextEditingController();
     _phoneZoneCtrl = TextEditingController();
@@ -79,224 +93,247 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
   }
 
   void _initCountries() {
-    // تعيين قيم افتراضية آمنة
     selectedPhoneZone = countries.firstWhere(
       (c) => c.countryCallingCode == 'YE',
       orElse: () => countries.first,
     );
     selectedWhatsAppZone = selectedPhoneZone;
     selectedCountry = selectedPhoneZone;
-
     _phoneZoneCtrl.text = selectedPhoneZone.countryCallingCode;
     _whatsAppZoneCtrl.text = selectedWhatsAppZone.countryCallingCode;
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    _confirmPassCtrl.dispose();
-    _bioCtrl.dispose();
-    _genderCtrl.dispose();
-    _birthDateCtrl.dispose();
-    _phoneCtrl.dispose();
-    _phoneZoneCtrl.dispose();
-    _whatsAppPhoneCtrl.dispose();
-    _whatsAppZoneCtrl.dispose();
-    _qualificationCtrl.dispose();
-    _memorizationCtrl.dispose();
-    _countryCtrl.dispose();
-    _residenceCtrl.dispose();
-    _timeCtrl.dispose();
+    _animCtrl.dispose();
+    for (final c in [
+      _nameCtrl,
+      _emailCtrl,
+      _passCtrl,
+      _confirmPassCtrl,
+      _bioCtrl,
+      _genderCtrl,
+      _birthDateCtrl,
+      _phoneCtrl,
+      _phoneZoneCtrl,
+      _whatsAppPhoneCtrl,
+      _whatsAppZoneCtrl,
+      _qualificationCtrl,
+      _memorizationCtrl,
+      _countryCtrl,
+      _residenceCtrl,
+      _timeCtrl,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
+  // ════════════════════════════════════════════════════════════════
+  //  BUILD
+  // ════════════════════════════════════════════════════════════════
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("إنشاء حساب طالب جديد"),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        // الأيقونات والنص تأتي من AppBarTheme في AppThemes
-      ),
+      backgroundColor: isDark
+          ? AppColors.darkBackground
+          : const Color(0xFFF2F1EC),
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) => _handleBlocListener(context, state),
-        builder: (context, state) {
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildSectionHeader(context, "المعلومات الأساسية"),
-                    const SizedBox(height: 15),
-                    CustomTextField(
-                      controller: _nameCtrl,
-                      prefixIcon: Icons.person_outline_rounded,
-                      label: "الاسم الثلاثي",
-                      keyboardType: TextInputType.name,
-                    ),
-                    CustomTextField(
-                      controller: _bioCtrl,
-                      prefixIcon: Icons.info_outline_rounded,
-                      label: "نبذة تعريفية",
-                      keyboardType: TextInputType.multiline,
-                      // maxLines: 2, // إذا كان الودجت يدعمها
-                    ),
-
-                    const SizedBox(height: 25),
-                    _buildSectionHeader(context, "بيانات الدخول"),
-                    const SizedBox(height: 15),
-                    CustomTextField(
-                      controller: _emailCtrl,
-                      prefixIcon: Icons.email_outlined,
-                      label: "البريد الإلكتروني",
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    CustomTextField(
-                      controller: _passCtrl,
-                      prefixIcon: Icons.lock_outline_rounded,
-                      label: "كلمة المرور",
-                      isPassword: true,
-                      keyboardType: TextInputType.visiblePassword,
-                    ),
-                    CustomTextField(
-                      controller: _confirmPassCtrl,
-                      prefixIcon: Icons.lock_reset_rounded,
-                      label: "تأكيد كلمة المرور",
-                      isPassword: true,
-                      validator: (val) {
-                        if (val != _passCtrl.text) {
-                          return "كلمات المرور غير متطابقة";
-                        }
-                        return null;
-                      },
-                    ),
-
-                    const SizedBox(height: 25),
-                    _buildSectionHeader(context, "البيانات الشخصية"),
-                    const SizedBox(height: 15),
-                    Row(
+        listener: (ctx, state) => _handleBlocListener(ctx, state),
+        builder: (ctx, state) {
+          return NestedScrollView(
+            headerSliverBuilder: (_, __) => [
+              SliverAppBar(
+                expandedHeight: 190,
+                pinned: true,
+                floating: false,
+                elevation: 0,
+                backgroundColor: isDark
+                    ? AppColors.mediumDark
+                    : AppColors.accent,
+                iconTheme: const IconThemeData(color: Colors.white),
+                title: const Text(
+                  'إنشاء حساب طالب جديد',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Cairo',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                  ),
+                ),
+                centerTitle: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  collapseMode: CollapseMode.pin,
+                  background: _buildHeroHeader(isDark),
+                ),
+              ),
+            ],
+            body: FadeTransition(
+              opacity: _fadeAnim,
+              child: SlideTransition(
+                position: _slideAnim,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 48),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
                       children: [
-                        Expanded(child: _buildGenderDropdown(context)),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: CustomDatePicker(
-                            controller: _birthDateCtrl,
-                            icon: Icons.calendar_month_outlined,
-                            label: "الميلاد",
-                            onDateSelected: (date) {
-                              _birthDateCtrl.text = formatDate(date);
-                            },
-                          ),
+                        _buildSection(
+                          context,
+                          icon: Icons.person_rounded,
+                          title: 'المعلومات الأساسية',
+                          children: [
+                            CustomTextField(
+                              controller: _nameCtrl,
+                              prefixIcon: Icons.badge_outlined,
+                              label: 'الاسم الثلاثي',
+                              keyboardType: TextInputType.name,
+                            ),
+                            CustomTextField(
+                              controller: _bioCtrl,
+                              prefixIcon: Icons.info_outline_rounded,
+                              label: 'نبذة تعريفية',
+                              keyboardType: TextInputType.multiline,
+                            ),
+                          ],
                         ),
+                        _buildSection(
+                          context,
+                          icon: Icons.lock_person_rounded,
+                          title: 'بيانات الدخول',
+                          children: [
+                            CustomTextField(
+                              controller: _emailCtrl,
+                              prefixIcon: Icons.alternate_email_rounded,
+                              label: 'البريد الإلكتروني',
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+                            CustomTextField(
+                              controller: _passCtrl,
+                              prefixIcon: Icons.lock_outline_rounded,
+                              label: 'كلمة المرور',
+                              isPassword: true,
+                            ),
+                            CustomTextField(
+                              controller: _confirmPassCtrl,
+                              prefixIcon: Icons.lock_reset_rounded,
+                              label: 'تأكيد كلمة المرور',
+                              isPassword: true,
+                              validator: (val) {
+                                if (val == null || val.isEmpty)
+                                  return 'حقل تأكيد كلمة المرور مطلوب';
+                                if (val != _passCtrl.text)
+                                  return 'كلمات المرور غير متطابقة';
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                        _buildSection(
+                          context,
+                          icon: Icons.face_rounded,
+                          title: 'البيانات الشخصية',
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: _buildGenderDropdown(context)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: CustomDatePicker(
+                                    controller: _birthDateCtrl,
+                                    icon: Icons.cake_outlined,
+                                    label: 'تاريخ الميلاد',
+                                    onDateSelected: (d) =>
+                                        _birthDateCtrl.text = formatDate(d),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            CustomTextField(
+                              controller: _countryCtrl,
+                              prefixIcon: Icons.flag_outlined,
+                              label: 'محل الميلاد',
+                              readOnly: true,
+                              onTap: (ctrl, _) => _showCountryDialog(ctrl),
+                            ),
+                            CustomTextField(
+                              controller: _residenceCtrl,
+                              prefixIcon: Icons.location_city_rounded,
+                              label: 'بلد الإقامة',
+                              readOnly: true,
+                              onTap: (ctrl, _) => _showCountryDialog(ctrl),
+                            ),
+                          ],
+                        ),
+                        _buildSection(
+                          context,
+                          icon: Icons.contact_phone_rounded,
+                          title: 'التواصل',
+                          children: [
+                            PhoneZoneForm(
+                              phoneController: _phoneCtrl,
+                              zoneController: _phoneZoneCtrl,
+                              initialCountry: selectedPhoneZone,
+                              label: 'رقم الهاتف',
+                              onCountryChanged: () => _updatePhoneZone(
+                                _phoneZoneCtrl,
+                                (c) => selectedPhoneZone = c,
+                              ),
+                            ),
+                            PhoneZoneForm(
+                              phoneController: _whatsAppPhoneCtrl,
+                              zoneController: _whatsAppZoneCtrl,
+                              initialCountry: selectedWhatsAppZone,
+                              label: 'واتسآب',
+                              onCountryChanged: () => _updatePhoneZone(
+                                _whatsAppZoneCtrl,
+                                (c) => selectedWhatsAppZone = c,
+                              ),
+                            ),
+                            CustomTimePicker(
+                              controller: _timeCtrl,
+                              icon: Icons.access_time_filled_rounded,
+                              label: 'أفضل وقت للتواصل',
+                              onTimeSelected: (t) =>
+                                  _timeCtrl.text = t.format(context),
+                            ),
+                          ],
+                        ),
+                        _buildSection(
+                          context,
+                          icon: Icons.menu_book_rounded,
+                          title: 'المعلومات القرآنية',
+                          children: [
+                            CustomTextField(
+                              controller: _qualificationCtrl,
+                              prefixIcon: Icons.school_outlined,
+                              label: 'المؤهل العلمي',
+                            ),
+                            CustomTextField(
+                              controller: _memorizationCtrl,
+                              prefixIcon: Icons.format_list_numbered_rounded,
+                              keyboardType: TextInputType.number,
+                              label: 'عدد الأجزاء المحفوظة',
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (state.status == LogInStatus.loading)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: CircularProgressIndicator(
+                              color: colorScheme.primary,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        else
+                          _buildSubmitButton(),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    // حقول الموقع
-                    CustomTextField(
-                      controller: _countryCtrl,
-                      prefixIcon: Icons.flag_outlined,
-                      label: "محل الميلاد",
-                      readOnly: true,
-                      onTap: (ctrl, _) => _showCountryDialog(ctrl),
-                    ),
-                    CustomTextField(
-                      controller: _residenceCtrl,
-                      prefixIcon: Icons.location_on_outlined,
-                      label: "بلد الإقامة",
-                      readOnly: true,
-                      onTap: (ctrl, _) => _showCountryDialog(ctrl),
-                    ),
-
-                    const SizedBox(height: 25),
-                    _buildSectionHeader(context, "التواصل"),
-                    const SizedBox(height: 15),
-                    PhoneZoneForm(
-                      phoneController: _phoneCtrl,
-                      zoneController: _phoneZoneCtrl,
-                      initialCountry: selectedPhoneZone,
-                      label: "رقم الهاتف",
-                      onCountryChanged: () => _updatePhoneZone(
-                        _phoneZoneCtrl,
-                        (c) => selectedPhoneZone = c,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    PhoneZoneForm(
-                      phoneController: _whatsAppPhoneCtrl,
-                      zoneController: _whatsAppZoneCtrl,
-                      initialCountry: selectedWhatsAppZone,
-                      label: "واتسآب",
-                      onCountryChanged: () => _updatePhoneZone(
-                        _whatsAppZoneCtrl,
-                        (c) => selectedWhatsAppZone = c,
-                      ),
-                    ),
-                    CustomTimePicker(
-                      controller: _timeCtrl,
-                      icon: Icons.access_time_rounded,
-                      label: "أفضل وقت للتواصل",
-                      onTimeSelected: (time) {
-                        _timeCtrl.text = time.format(context);
-                      },
-                    ),
-
-                    const SizedBox(height: 25),
-                    _buildSectionHeader(context, "المعلومات القرآنية"),
-                    const SizedBox(height: 15),
-                    CustomTextField(
-                      controller: _qualificationCtrl,
-                      prefixIcon: Icons.school_outlined,
-                      label: "المؤهل العلمي",
-                    ),
-                    CustomTextField(
-                      controller: _memorizationCtrl,
-                      prefixIcon: Icons.menu_book_rounded,
-                      keyboardType: TextInputType.number,
-                      label: "عدد الأجزاء المحفوظة",
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // --- زر التسجيل ---
-                    if (state.status == LogInStatus.loading)
-                      Center(
-                        child: CircularProgressIndicator(
-                          color: colorScheme.primary,
-                        ),
-                      )
-                    else
-                      SizedBox(
-                        height: 56, // ارتفاع مريح للزر
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: colorScheme.primary,
-                            foregroundColor: colorScheme.onPrimary,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          onPressed: _submitForm,
-                          child: Text(
-                            "تسجيل الحساب",
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -306,26 +343,164 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
     );
   }
 
-  // --- Widgets Helpers ---
+  // ════════════════════════════════════════════════════════════════
+  //  WIDGETS
+  // ════════════════════════════════════════════════════════════════
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    final theme = Theme.of(context);
+  /// Gradient hero behind the collapsed SliverAppBar
+  Widget _buildHeroHeader(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [AppColors.darkBackground, AppColors.mediumDark]
+              : [AppColors.mediumDark, AppColors.accent],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // decorative blobs
+          Positioned(top: -35, left: -35, child: _blob(130, 0.05)),
+          Positioned(bottom: -25, right: -25, child: _blob(110, 0.07)),
+          Positioned(top: 40, right: 60, child: _blob(50, 0.04)),
+          // content
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 36),
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.25),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.person_add_alt_1_rounded,
+                    color: Colors.white,
+                    size: 34,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'انضم إلى منصة شافعة',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Cairo',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'أدخل بياناتك لإنشاء حسابك',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.65),
+                    fontFamily: 'Cairo',
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blob(double size, double opacity) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.white.withOpacity(opacity),
+    ),
+  );
+
+  /// Styled card container for each form section
+  Widget _buildSection(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.mediumDark : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.onSurface.withOpacity(isDark ? 0.12 : 0.08),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.18 : 0.05),
+            blurRadius: 18,
+            spreadRadius: 0,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader(colorScheme, icon, title),
+            const SizedBox(height: 18),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(ColorScheme cs, IconData icon, String title) {
     return Row(
       children: [
-        Icon(Icons.circle, size: 8, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onBackground.withOpacity(0.8),
+        // accent bar
+        Container(
+          width: 3.5,
+          height: 22,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [cs.primary, cs.primary.withOpacity(0.25)],
+            ),
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Divider(
-            color: theme.colorScheme.onBackground.withOpacity(0.1),
-            thickness: 1,
+        const SizedBox(width: 10),
+        // icon badge
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: cs.primary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: cs.primary),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'Cairo',
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface.withOpacity(0.85),
           ),
         ),
       ],
@@ -333,65 +508,143 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
   }
 
   Widget _buildGenderDropdown(BuildContext context) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
-    return DropdownButtonFormField<String>(
-      value: _genderCtrl.text.isEmpty ? "Male" : _genderCtrl.text,
-      isDense: true,
-      icon: Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: theme.colorScheme.onSurface.withOpacity(0.5),
-        size: 24,
-      ),
-
-      decoration: InputDecoration(
-        labelText: "الجنس",
-        prefixIcon: Icon(
-          Icons.people_alt_outlined,
-          color: theme.colorScheme.onSurface.withOpacity(0.5),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: DropdownButtonFormField<String>(
+        value: _genderCtrl.text.isEmpty ? 'Male' : _genderCtrl.text,
+        isDense: true,
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: colorScheme.onSurface.withOpacity(0.5),
           size: 22,
         ),
-
-        filled: true,
-        fillColor: AppColors.lightCream.withOpacity(0.1),
-
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 13.5,
-          horizontal: 12,
+        dropdownColor: isDark ? AppColors.mediumDark : Colors.white,
+        style: TextStyle(
+          fontFamily: 'Cairo',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface,
         ),
-
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+        decoration: InputDecoration(
+          labelText: 'الجنس',
+          labelStyle: TextStyle(
+            color: colorScheme.onSurface.withOpacity(0.55),
+            fontFamily: 'Cairo',
+            fontSize: 13,
+          ),
+          prefixIcon: Icon(
+            Icons.wc_rounded,
+            color: colorScheme.primary.withOpacity(0.75),
+            size: 20,
+          ),
+          filled: true,
+          fillColor: isDark
+              ? colorScheme.onSurface.withOpacity(0.07)
+              : colorScheme.primary.withOpacity(0.04),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 15,
+            horizontal: 16,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: colorScheme.onSurface.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: colorScheme.primary, width: 1.8),
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
+        items: [
+          DropdownMenuItem(
+            value: 'Male',
+            child: Text(
+              'ذكر',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          DropdownMenuItem(
+            value: 'Female',
+            child: Text(
+              'أنثى',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+        onChanged: (val) {
+          if (val != null) setState(() => _genderCtrl.text = val);
+        },
       ),
-
-      dropdownColor: theme.colorScheme.surface,
-
-      style: theme.textTheme.bodyLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: theme.colorScheme.onBackground,
-      ),
-
-      items: const [
-        DropdownMenuItem(value: "Male", child: Text("ذكر")),
-        DropdownMenuItem(value: "Female", child: Text("أنثى")),
-      ],
-      onChanged: (val) {
-        if (val != null) setState(() => _genderCtrl.text = val);
-      },
     );
   }
 
-  // --- Logic Helpers ---
+  Widget _buildSubmitButton() {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.accent, AppColors.mediumDark],
+          begin: Alignment.centerRight,
+          end: Alignment.centerLeft,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.38),
+            blurRadius: 18,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: _submitForm,
+          borderRadius: BorderRadius.circular(16),
+          splashColor: Colors.white.withOpacity(0.1),
+          child: const Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.how_to_reg_rounded, color: Colors.white, size: 22),
+                SizedBox(width: 10),
+                Text(
+                  'تسجيل الحساب',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Cairo',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════
+  //  LOGIC
+  // ════════════════════════════════════════════════════════════════
 
   void _handleBlocListener(BuildContext context, AuthState state) {
     if (state.status == LogInStatus.success) {
@@ -399,19 +652,31 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
         SnackBar(
           content: Text(
             state.successEntity?.message ??
-                "تم إنشاء الحساب بنجاح، يرجى تسجيل الدخول",
+                'تم إنشاء الحساب بنجاح، يرجى تسجيل الدخول',
+            style: const TextStyle(fontFamily: 'Cairo'),
           ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(12),
         ),
       );
       Navigator.pop(context);
     } else if (state.status == LogInStatus.failure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(state.failure?.message ?? "حدث خطأ أثناء التسجيل"),
+          content: Text(
+            state.failure?.message ?? 'حدث خطأ أثناء التسجيل',
+            style: const TextStyle(fontFamily: 'Cairo'),
+          ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          margin: const EdgeInsets.all(12),
         ),
       );
     }
@@ -419,18 +684,15 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
 
   void _updatePhoneZone(
     TextEditingController controller,
-    Function(CountryModel) onUpdate,
+    void Function(CountryModel) onUpdate,
   ) {
     setState(() {
-      final code = controller.text;
       try {
         final country = countries.firstWhere(
-          (x) => x.countryCallingCode == code,
+          (x) => x.countryCallingCode == controller.text,
         );
         onUpdate(country);
-      } catch (_) {
-        // يمكن إضافة منطق للتعامل مع الإدخال اليدوي غير الموجود
-      }
+      } catch (_) {}
     });
   }
 
@@ -458,7 +720,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage> {
         name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
-        bio: _bioCtrl.text.isNotEmpty ? _bioCtrl.text : "طالب جديد",
+        bio: _bioCtrl.text.isNotEmpty ? _bioCtrl.text : 'طالب جديد',
         qualifications: _qualificationCtrl.text,
         memorizationLevel: int.tryParse(_memorizationCtrl.text),
         gender: Gender.fromLabel(_genderCtrl.text),
