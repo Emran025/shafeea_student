@@ -1,4 +1,4 @@
-package com.example.shafeea
+package com.shafeea.student
 
 import io.flutter.embedding.android.FlutterActivity
 
