@@ -1,25 +1,33 @@
 class EndPoint {
-  static const String baseUrl =
-      "https://shafeea-platform-8e43.onrender.com/api/v1/"; //192.168.32.92
+  // ── Server base URL ───────────────────────────────────────────────────────
+  /// Resolved at compile-time from the `SHAFEEA_STUDENT_API_URL` env variable.
+  /// Pass with: `--dart-define=SHAFEEA_STUDENT_API_URL=https://api.shafeeaStudent.app`
+  /// Falls back to the Android emulator loopback address in development.
+  static const String baseUrl = String.fromEnvironment(
+    'SHAFEEA_STUDENT_API_URL',
+  );
+
+  // ── Base prefix ───────────────────────────────────────────────────────────
+  static const String v1 = '/api/v1';
 
   /// Endpoint for fetching a specific student's follow-up tracking records.
   /// The `{id}` placeholder will be replaced by the student's actual ID.
-  static const String studentTrackings = '/students/{id}/trackings';
-  static const String logIn = "auth/login";
-  static const String forgetPassword = "auth/forgot-password";
-  static const String applicant = "auth/register";
-  static const String applicantStatus = "auth/applicant-status";
-  static const String logOut = "auth/logout";
-  static const String refreshToken = "refreshToken";
-  static const String userProfile = "students/{id}";
-  static const String accountProfile = "account/profile";
-  static const String changePassword = "account/change-password";
-  static const String sessions = "account/sessions";
+  static const String studentTrackings = '$v1/students/{id}/trackings';
+  static const String logIn = "$v1/auth/login";
+  static const String forgetPassword = "$v1/auth/forgot-password";
+  static const String applicant = "$v1/auth/register";
+  static const String applicantStatus = "$v1/auth/applicant-status";
+  static const String logOut = "$v1/auth/logout";
+  static const String refreshToken = "$v1/refreshToken";
+  static const String userProfile = "$v1/students/{id}";
+  static const String accountProfile = "$v1/account/profile";
+  static const String changePassword = "$v1/account/change-password";
+  static const String sessions = "$v1/account/sessions";
 
-  static const String privacyPolicy = "help/privacy-policy";
-  static const String faqs = "help/faqs";
-  static const String tickets = "help/tickets";
-  static const String termsOfUse = "help/terms-of-use";
+  static const String privacyPolicy = "$v1/help/privacy-policy";
+  static const String faqs = "$v1/help/faqs";
+  static const String tickets = "$v1/help/tickets";
+  static const String termsOfUse = "$v1/help/terms-of-use";
 }
 
 class ApiKey {

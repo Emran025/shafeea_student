@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:shafeea/features/auth/presentation/ui/screens/logIn_screen.dart';
+import 'package:shafeea/features/auth/presentation/ui/screens/login_screen.dart';
 import 'package:shafeea/features/app/pages/splash_screen.dart';
 import 'package:shafeea/features/app/pages/welcome_screen.dart';
 import 'package:shafeea/features/home/presentation/ui/screens/home_screen.dart';
@@ -37,6 +37,7 @@ final appRouter = GoRouter(
       name: 'login',
       builder: (_, __) => const LogInScreen(),
     ),
+
     /// Defines the route for the login screen.
     GoRoute(
       path: '/register-student', // Using snake_case for consistency
