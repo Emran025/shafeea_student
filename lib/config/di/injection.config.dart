@@ -1,5 +1,5 @@
-// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 // **************************************************************************
 // InjectableConfigGenerator
@@ -56,6 +56,8 @@ import 'package:shafeea/features/auth/domain/usecases/logout_usecase.dart'
     as _i871;
 import 'package:shafeea/features/auth/domain/usecases/register_student_usecase.dart'
     as _i268;
+import 'package:shafeea/features/auth/domain/usecases/resend_verification_usecase.dart'
+    as _i334;
 import 'package:shafeea/features/auth/domain/usecases/switch_user_usecase.dart'
     as _i741;
 import 'package:shafeea/features/auth/presentation/bloc/auth_bloc.dart'
@@ -208,19 +210,18 @@ extension GetItInjectableX on _i174.GetIt {
       () => registerModule.dioForTokenRefreshInstance(),
       instanceName: 'DioForTokenRefresh',
     );
+    gh.lazySingleton<_i228.PushNotificationService>(
+      () => _i975.DummyPushNotificationServiceImpl(),
+    );
+    gh.lazySingleton<_i611.QuranRepository>(
+      () => _i210.QuranRepositoryImpl(
+        localDataSource: gh<_i750.QuranLocalDataSource>(),
+      ),
+    );
     gh.lazySingleton<_i234.AuthLocalDataSource>(
       () => _i1018.AuthLocalDataSourceImpl(
         sharedPreferences: gh<_i460.SharedPreferences>(),
         secureStorage: gh<_i558.FlutterSecureStorage>(),
-      ),
-    );
-    gh.lazySingleton<_i228.PushNotificationService>(
-      () => _i975.DummyPushNotificationServiceImpl(),
-    );
-    gh.lazySingleton<_i222.DeviceInfoService>(
-      () => _i222.DeviceInfoServiceImpl(
-        deviceInfoPlugin: gh<_i833.DeviceInfoPlugin>(),
-        pushNotificationService: gh<_i228.PushNotificationService>(),
       ),
     );
     gh.lazySingleton<_i950.SettingsLocalDataSource>(
@@ -229,44 +230,21 @@ extension GetItInjectableX on _i174.GetIt {
         appDatabase: gh<_i396.AppDatabase>(),
       ),
     );
-    gh.lazySingleton<_i611.QuranRepository>(
-      () => _i210.QuranRepositoryImpl(
-        localDataSource: gh<_i750.QuranLocalDataSource>(),
-      ),
-    );
-    gh.lazySingleton<_i672.NetworkInfo>(
-      () => _i428.NetworkInfoImpl(
-        connectionChecker: gh<_i161.InternetConnection>(),
-      ),
-    );
-    await gh.factoryAsync<_i779.Database>(
-      () => registerModule.database(gh<_i396.AppDatabase>()),
-      preResolve: true,
-    );
     gh.lazySingleton<_i361.Dio>(
       () => registerModule.dio(
         gh<_i558.FlutterSecureStorage>(),
         gh<_i361.Dio>(instanceName: 'DioForTokenRefresh'),
       ),
     );
-    gh.lazySingleton<_i1022.TrackingLocalDataSource>(
-      () => _i348.TrackingLocalDataSourceImpl(
-        gh<_i396.AppDatabase>(),
-        gh<_i750.QuranLocalDataSource>(),
-        gh<_i234.AuthLocalDataSource>(),
+    gh.lazySingleton<_i222.DeviceInfoService>(
+      () => _i222.DeviceInfoServiceImpl(
+        deviceInfoPlugin: gh<_i833.DeviceInfoPlugin>(),
+        pushNotificationService: gh<_i228.PushNotificationService>(),
       ),
     );
-    gh.lazySingleton<_i733.ApiConsumer>(
-      () => registerModule.apiConsumer(gh<_i361.Dio>()),
-    );
-    gh.lazySingleton<_i672.AuthRemoteDataSource>(
-      () => _i287.AuthRemoteDataSourceImpl(gh<_i733.ApiConsumer>()),
-    );
-    gh.lazySingleton<_i155.StudentLocalDataSource>(
-      () => _i1007.StudentLocalDataSourceImpl(
-        database: gh<_i779.Database>(),
-        authLocalDataSource: gh<_i234.AuthLocalDataSource>(),
-      ),
+    await gh.factoryAsync<_i779.Database>(
+      () => registerModule.database(gh<_i396.AppDatabase>()),
+      preResolve: true,
     );
     gh.lazySingleton<_i1010.GetMistakesAyahs>(
       () => _i1010.GetMistakesAyahs(repository: gh<_i611.QuranRepository>()),
@@ -277,58 +255,21 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i359.GetSurahsList>(
       () => _i359.GetSurahsList(repository: gh<_i611.QuranRepository>()),
     );
+    gh.lazySingleton<_i672.NetworkInfo>(
+      () => _i428.NetworkInfoImpl(
+        connectionChecker: gh<_i161.InternetConnection>(),
+      ),
+    );
+    gh.lazySingleton<_i733.ApiConsumer>(
+      () => registerModule.apiConsumer(gh<_i361.Dio>()),
+    );
     gh.lazySingleton<_i38.SettingsRemoteDataSource>(
       () => _i825.SettingsRemoteDataSourceImpl(api: gh<_i733.ApiConsumer>()),
     );
-    gh.lazySingleton<_i424.AuthRepository>(
-      () => _i950.AuthRepositoryImpl(
-        remoteDataSource: gh<_i672.AuthRemoteDataSource>(),
-        localDataSource: gh<_i234.AuthLocalDataSource>(),
-        studentLocalDataSource: gh<_i155.StudentLocalDataSource>(),
-        deviceInfoService: gh<_i222.DeviceInfoService>(),
-        networkInfo: gh<_i672.NetworkInfo>(),
-      ),
-    );
-    gh.lazySingleton<_i183.StudentRemoteDataSource>(
-      () => _i941.StudentRemoteDataSourceImpl(
-        apiConsumer: gh<_i733.ApiConsumer>(),
-      ),
-    );
-    gh.lazySingleton<_i844.SettingsRepository>(
-      () => _i900.SettingsRepositoryImpl(
-        localDataSource: gh<_i950.SettingsLocalDataSource>(),
-        remoteDataSource: gh<_i38.SettingsRemoteDataSource>(),
-        networkInfo: gh<_i672.NetworkInfo>(),
-      ),
-    );
-    gh.factory<_i426.ForgetPasswordUseCase>(
-      () => _i426.ForgetPasswordUseCase(gh<_i424.AuthRepository>()),
-    );
-    gh.factory<_i250.LogInUseCase>(
-      () => _i250.LogInUseCase(gh<_i424.AuthRepository>()),
-    );
-    gh.factory<_i871.LogOutUseCase>(
-      () => _i871.LogOutUseCase(gh<_i424.AuthRepository>()),
-    );
-    gh.lazySingleton<_i960.ChangePasswordUseCase>(
-      () => _i960.ChangePasswordUseCase(gh<_i424.AuthRepository>()),
-    );
-    gh.lazySingleton<_i186.CheckLogInUseCase>(
-      () => _i186.CheckLogInUseCase(gh<_i424.AuthRepository>()),
-    );
-    gh.lazySingleton<_i1001.GetFaqsUseCase>(
-      () => _i1001.GetFaqsUseCase(gh<_i844.SettingsRepository>()),
-    );
-    gh.lazySingleton<_i830.GetTermsOfUseUseCase>(
-      () => _i830.GetTermsOfUseUseCase(gh<_i844.SettingsRepository>()),
-    );
-    gh.lazySingleton<_i402.SubmitSupportTicketUseCase>(
-      () => _i402.SubmitSupportTicketUseCase(gh<_i844.SettingsRepository>()),
-    );
-    gh.lazySingleton<_i341.TrackingRepository>(
-      () => _i431.TrackingRepositoryImpl(
-        localDataSource: gh<_i1022.TrackingLocalDataSource>(),
-        studentLocalDataSource: gh<_i155.StudentLocalDataSource>(),
+    gh.lazySingleton<_i155.StudentLocalDataSource>(
+      () => _i1007.StudentLocalDataSourceImpl(
+        database: gh<_i779.Database>(),
+        authLocalDataSource: gh<_i234.AuthLocalDataSource>(),
       ),
     );
     gh.factory<_i8.QuranReaderBloc>(
@@ -338,12 +279,70 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i331.GetPageData>(),
       ),
     );
+    gh.lazySingleton<_i1022.TrackingLocalDataSource>(
+      () => _i348.TrackingLocalDataSourceImpl(
+        gh<_i396.AppDatabase>(),
+        gh<_i750.QuranLocalDataSource>(),
+        gh<_i234.AuthLocalDataSource>(),
+      ),
+    );
+    gh.lazySingleton<_i341.TrackingRepository>(
+      () => _i431.TrackingRepositoryImpl(
+        localDataSource: gh<_i1022.TrackingLocalDataSource>(),
+        studentLocalDataSource: gh<_i155.StudentLocalDataSource>(),
+      ),
+    );
+    gh.lazySingleton<_i183.StudentRemoteDataSource>(
+      () => _i941.StudentRemoteDataSourceImpl(
+        apiConsumer: gh<_i733.ApiConsumer>(),
+      ),
+    );
+    gh.lazySingleton<_i672.AuthRemoteDataSource>(
+      () => _i287.AuthRemoteDataSourceImpl(gh<_i733.ApiConsumer>()),
+    );
+    gh.lazySingleton<_i268.GenerateFollowUpReportUseCase>(
+      () => _i268.GenerateFollowUpReportUseCase(
+        gh<_i341.TrackingRepository>(),
+        gh<_i799.FollowUpReportFactory>(),
+      ),
+    );
+    gh.lazySingleton<_i500.GetAllMistakes>(
+      () => _i500.GetAllMistakes(gh<_i341.TrackingRepository>()),
+    );
+    gh.lazySingleton<_i618.GetErrorAnalysisChartData>(
+      () => _i618.GetErrorAnalysisChartData(gh<_i341.TrackingRepository>()),
+    );
+    gh.lazySingleton<_i949.GetOrCreateTodayTrackingDetails>(
+      () =>
+          _i949.GetOrCreateTodayTrackingDetails(gh<_i341.TrackingRepository>()),
+    );
+    gh.lazySingleton<_i692.SaveDraftMistakesUseCase>(
+      () => _i692.SaveDraftMistakesUseCase(gh<_i341.TrackingRepository>()),
+    );
+    gh.lazySingleton<_i587.SaveTaskProgress>(
+      () => _i587.SaveTaskProgress(gh<_i341.TrackingRepository>()),
+    );
     gh.lazySingleton<_i331.StudentSyncService>(
       () => _i148.StudentSyncServiceImpl(
         remoteDataSource: gh<_i183.StudentRemoteDataSource>(),
         localDataSource: gh<_i155.StudentLocalDataSource>(),
         authLocalDataSource: gh<_i234.AuthLocalDataSource>(),
         networkInfo: gh<_i672.NetworkInfo>(),
+      ),
+    );
+    gh.lazySingleton<_i844.SettingsRepository>(
+      () => _i900.SettingsRepositoryImpl(
+        localDataSource: gh<_i950.SettingsLocalDataSource>(),
+        remoteDataSource: gh<_i38.SettingsRemoteDataSource>(),
+        networkInfo: gh<_i672.NetworkInfo>(),
+      ),
+    );
+    gh.lazySingleton<_i634.StudentRepository>(
+      () => _i408.StudentRepositoryImpl(
+        localDataSource: gh<_i155.StudentLocalDataSource>(),
+        trackingLocalDataSource: gh<_i1022.TrackingLocalDataSource>(),
+        remoteDataSource: gh<_i183.StudentRemoteDataSource>(),
+        syncService: gh<_i331.StudentSyncService>(),
       ),
     );
     gh.lazySingleton<_i356.GetLatestPolicyUseCase>(
@@ -367,6 +366,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i957.UpdateUserProfile>(
       () => _i957.UpdateUserProfile(gh<_i844.SettingsRepository>()),
     );
+    gh.lazySingleton<_i424.AuthRepository>(
+      () => _i950.AuthRepositoryImpl(
+        remoteDataSource: gh<_i672.AuthRemoteDataSource>(),
+        localDataSource: gh<_i234.AuthLocalDataSource>(),
+        studentLocalDataSource: gh<_i155.StudentLocalDataSource>(),
+        deviceInfoService: gh<_i222.DeviceInfoService>(),
+        networkInfo: gh<_i672.NetworkInfo>(),
+      ),
+    );
     gh.lazySingleton<_i1045.GetAllUsersUseCase>(
       () => _i1045.GetAllUsersUseCase(gh<_i424.AuthRepository>()),
     );
@@ -376,47 +384,52 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i741.SwitchUserUseCase>(
       () => _i741.SwitchUserUseCase(gh<_i424.AuthRepository>()),
     );
-    gh.lazySingleton<_i500.GetAllMistakes>(
-      () => _i500.GetAllMistakes(gh<_i341.TrackingRepository>()),
+    gh.factory<_i426.ForgetPasswordUseCase>(
+      () => _i426.ForgetPasswordUseCase(gh<_i424.AuthRepository>()),
     );
-    gh.lazySingleton<_i618.GetErrorAnalysisChartData>(
-      () => _i618.GetErrorAnalysisChartData(gh<_i341.TrackingRepository>()),
+    gh.factory<_i250.LogInUseCase>(
+      () => _i250.LogInUseCase(gh<_i424.AuthRepository>()),
     );
-    gh.lazySingleton<_i949.GetOrCreateTodayTrackingDetails>(
-      () =>
-          _i949.GetOrCreateTodayTrackingDetails(gh<_i341.TrackingRepository>()),
+    gh.factory<_i871.LogOutUseCase>(
+      () => _i871.LogOutUseCase(gh<_i424.AuthRepository>()),
     );
-    gh.lazySingleton<_i692.SaveDraftMistakesUseCase>(
-      () => _i692.SaveDraftMistakesUseCase(gh<_i341.TrackingRepository>()),
+    gh.lazySingleton<_i960.ChangePasswordUseCase>(
+      () => _i960.ChangePasswordUseCase(gh<_i424.AuthRepository>()),
     );
-    gh.lazySingleton<_i587.SaveTaskProgress>(
-      () => _i587.SaveTaskProgress(gh<_i341.TrackingRepository>()),
+    gh.lazySingleton<_i186.CheckLogInUseCase>(
+      () => _i186.CheckLogInUseCase(gh<_i424.AuthRepository>()),
     );
-    gh.lazySingleton<_i268.GenerateFollowUpReportUseCase>(
-      () => _i268.GenerateFollowUpReportUseCase(
-        gh<_i341.TrackingRepository>(),
-        gh<_i799.FollowUpReportFactory>(),
+    gh.lazySingleton<_i334.ResendVerificationEmailUseCase>(
+      () => _i334.ResendVerificationEmailUseCase(gh<_i424.AuthRepository>()),
+    );
+    gh.factory<_i2.ErrorAnalysisChartBloc>(
+      () => blocModule.errorAnalysisChartBloc(
+        gh<_i618.GetErrorAnalysisChartData>(),
       ),
     );
-    gh.factory<_i708.AuthBloc>(
-      () => blocModule.authBloc(
-        gh<_i250.LogInUseCase>(),
-        gh<_i186.CheckLogInUseCase>(),
-        gh<_i871.LogOutUseCase>(),
-        gh<_i426.ForgetPasswordUseCase>(),
-        gh<_i960.ChangePasswordUseCase>(),
-        gh<_i1045.GetAllUsersUseCase>(),
-        gh<_i741.SwitchUserUseCase>(),
-        gh<_i268.RegisterStudentUseCase>(),
+    gh.factory<_i820.TrackingSessionBloc>(
+      () => blocModule.trackingSession(
+        gh<_i949.GetOrCreateTodayTrackingDetails>(),
+        gh<_i500.GetAllMistakes>(),
+        gh<_i268.GenerateFollowUpReportUseCase>(),
+        gh<_i587.SaveTaskProgress>(),
+        gh<_i692.SaveDraftMistakesUseCase>(),
       ),
     );
-    gh.lazySingleton<_i634.StudentRepository>(
-      () => _i408.StudentRepositoryImpl(
-        localDataSource: gh<_i155.StudentLocalDataSource>(),
-        trackingLocalDataSource: gh<_i1022.TrackingLocalDataSource>(),
-        remoteDataSource: gh<_i183.StudentRemoteDataSource>(),
-        syncService: gh<_i331.StudentSyncService>(),
-      ),
+    gh.factory<_i42.ExportFollowUpReportsUseCase>(
+      () => _i42.ExportFollowUpReportsUseCase(gh<_i634.StudentRepository>()),
+    );
+    gh.factory<_i204.ImportFollowUpReportsUseCase>(
+      () => _i204.ImportFollowUpReportsUseCase(gh<_i634.StudentRepository>()),
+    );
+    gh.lazySingleton<_i1001.GetFaqsUseCase>(
+      () => _i1001.GetFaqsUseCase(gh<_i844.SettingsRepository>()),
+    );
+    gh.lazySingleton<_i830.GetTermsOfUseUseCase>(
+      () => _i830.GetTermsOfUseUseCase(gh<_i844.SettingsRepository>()),
+    );
+    gh.lazySingleton<_i402.SubmitSupportTicketUseCase>(
+      () => _i402.SubmitSupportTicketUseCase(gh<_i844.SettingsRepository>()),
     );
     gh.lazySingleton<_i564.DeleteStudentUseCase>(
       () => _i564.DeleteStudentUseCase(gh<_i634.StudentRepository>()),
@@ -430,32 +443,17 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i43.UpsertStudent>(
       () => _i43.UpsertStudent(gh<_i634.StudentRepository>()),
     );
-    gh.factory<_i42.ExportFollowUpReportsUseCase>(
-      () => _i42.ExportFollowUpReportsUseCase(gh<_i634.StudentRepository>()),
-    );
-    gh.factory<_i204.ImportFollowUpReportsUseCase>(
-      () => _i204.ImportFollowUpReportsUseCase(gh<_i634.StudentRepository>()),
-    );
-    gh.factory<_i2.ErrorAnalysisChartBloc>(
-      () => blocModule.errorAnalysisChartBloc(
-        gh<_i618.GetErrorAnalysisChartData>(),
-      ),
-    );
-    gh.factory<_i516.StudentBloc>(
-      () => blocModule.studentBloc(
-        gh<_i43.UpsertStudent>(),
-        gh<_i564.DeleteStudentUseCase>(),
-        gh<_i1070.GetStudentById>(),
-        gh<_i314.GetPlanForTheDay>(),
-      ),
-    );
-    gh.factory<_i820.TrackingSessionBloc>(
-      () => blocModule.trackingSession(
-        gh<_i949.GetOrCreateTodayTrackingDetails>(),
-        gh<_i500.GetAllMistakes>(),
-        gh<_i268.GenerateFollowUpReportUseCase>(),
-        gh<_i587.SaveTaskProgress>(),
-        gh<_i692.SaveDraftMistakesUseCase>(),
+    gh.factory<_i708.AuthBloc>(
+      () => blocModule.authBloc(
+        gh<_i250.LogInUseCase>(),
+        gh<_i186.CheckLogInUseCase>(),
+        gh<_i871.LogOutUseCase>(),
+        gh<_i426.ForgetPasswordUseCase>(),
+        gh<_i960.ChangePasswordUseCase>(),
+        gh<_i1045.GetAllUsersUseCase>(),
+        gh<_i741.SwitchUserUseCase>(),
+        gh<_i268.RegisterStudentUseCase>(),
+        gh<_i334.ResendVerificationEmailUseCase>(),
       ),
     );
     gh.factory<_i790.SettingsBloc>(
@@ -472,6 +470,14 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1001.GetFaqsUseCase>(),
         gh<_i402.SubmitSupportTicketUseCase>(),
         gh<_i830.GetTermsOfUseUseCase>(),
+      ),
+    );
+    gh.factory<_i516.StudentBloc>(
+      () => blocModule.studentBloc(
+        gh<_i43.UpsertStudent>(),
+        gh<_i564.DeleteStudentUseCase>(),
+        gh<_i1070.GetStudentById>(),
+        gh<_i314.GetPlanForTheDay>(),
       ),
     );
     return this;

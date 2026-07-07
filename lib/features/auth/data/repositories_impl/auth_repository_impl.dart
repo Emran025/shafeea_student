@@ -298,4 +298,22 @@ final class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, SuccessEntity>> resendEmailVerification() async {
+    return await _executeAuthOperation(() async {
+      final successModel = await _remoteDataSource.resendEmailVerification();
+      return successModel.toEntity();
+    });
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> getProfileFromServer() async {
+    return await _executeAuthOperation(() async {
+      final userModel = await _remoteDataSource.getProfile();
+      // Sync the local cache with the latest server data
+      await _localDataSource.cacheUser(userModel);
+      return userModel.toUserEntity();
+    });
+  }
 }

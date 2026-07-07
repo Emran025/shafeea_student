@@ -85,3 +85,9 @@ class SubmitStudentRegistration extends AuthEvent {
   @override
   List<Object> get props => [studentApplicant];
 }
+
+/// Triggered when the user requests to resend the email verification link.
+class ResendVerificationEmailRequested extends AuthEvent {}
+
+/// Triggered to manually check if the user's email has been verified.
+class CheckVerificationStatusRequested extends AuthEvent {}

@@ -6,6 +6,7 @@ class UserModel {
   final String email;
   final String phone;
   final String? avatar;
+  final bool isEmailVerified;
 
   const UserModel({
     required this.id,
@@ -13,6 +14,7 @@ class UserModel {
     required this.email,
     required this.phone,
     this.avatar,
+    this.isEmailVerified = false,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class UserModel {
       email: json['email'] ?? '',
       phone: json['phone'] ?? '',
       avatar: json['avatar'],
+      isEmailVerified: json['is_email_verified'] as bool? ?? false,
     );
   }
 
@@ -32,6 +35,7 @@ class UserModel {
       email: map['email'] ?? '',
       avatar: map['avatar'],
       phone: map['phone'] ?? '',
+      isEmailVerified: map['is_email_verified'] as bool? ?? false,
     );
   }
 
@@ -42,6 +46,7 @@ class UserModel {
       'email': email,
       'phone': phone,
       'avatar': avatar,
+      'is_email_verified': isEmailVerified,
     };
   }
 
@@ -52,6 +57,7 @@ class UserModel {
       'email': email,
       'phone': phone,
       'avatar': avatar,
+      'is_email_verified': isEmailVerified,
     };
   }
 
@@ -62,6 +68,7 @@ class UserModel {
       email: email,
       phone: phone,
       avatar: avatar,
+      isEmailVerified: isEmailVerified,
     );
   }
 }

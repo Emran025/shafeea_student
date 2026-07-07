@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:shafeea/core/api/api_consumer.dart';
 import 'package:shafeea/core/network/network_info.dart';
 import 'package:shafeea/core/services/device_info_service.dart';
+import 'package:shafeea/features/auth/domain/usecases/resend_verification_usecase.dart';
 import 'package:shafeea/features/daily_tracking/domain/usecases/save_draft_mistakes_use_case.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shafeea/core/database/app_database.dart';
@@ -113,6 +114,9 @@ class MockRegisterStudentUseCase extends Mock
 class MockGetAllUsersUseCase extends Mock implements GetAllUsersUseCase {}
 
 class MockSwitchUserUseCase extends Mock implements SwitchUserUseCase {}
+
+class MockResendVerificationEmailUseCase extends Mock
+    implements ResendVerificationEmailUseCase {}
 
 // ============================================================================
 // MOCK CLASSES - Home Feature

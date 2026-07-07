@@ -1,5 +1,7 @@
 // features/auth/data/datasources/auth_remote_data_source.dart
 
+import 'package:shafeea/features/auth/data/models/user_model.dart';
+
 import '../../../../core/models/success_model.dart';
 import '../models/auth_response_model.dart';
 import '../models/login_request_model.dart';
@@ -23,6 +25,13 @@ abstract class AuthRemoteDataSource {
   /// Requests a password reset code.
   Future<SuccessModel> logOut();
 
-  Future<AuthResponseModel> registerStudent({required RegisterRequestModel requestModel
-});
+  Future<AuthResponseModel> registerStudent({
+    required RegisterRequestModel requestModel,
+  });
+
+  /// Resends the email verification link to the authenticated user.
+  Future<SuccessModel> resendEmailVerification();
+
+  /// Fetches the authenticated user's latest profile.
+  Future<UserModel> getProfile();
 }

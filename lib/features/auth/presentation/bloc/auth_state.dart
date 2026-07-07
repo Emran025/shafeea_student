@@ -14,6 +14,8 @@ enum ForgetPasswordStatus { initial, submitting, success, failure }
 
 enum ChangePasswordStatus { initial, submitting, success, failure }
 
+enum VerificationStatus { initial, loading, success, failure }
+
 /// -----------------------------------------------------------------
 /// AuthState Class
 /// -----------------------------------------------------------------
@@ -51,6 +53,10 @@ final class AuthState extends Equatable {
   // --- Logout State ---
   final Failure? logOutFailure;
 
+  // --- Verification State ---
+  final VerificationStatus verificationStatus;
+  final Failure? verificationFailure;
+
   const AuthState({
     // General
     this.authStatus = AuthStatus.initializing,
@@ -83,6 +89,10 @@ final class AuthState extends Equatable {
 
     // Logout
     this.logOutFailure,
+
+    // Verification
+    this.verificationStatus = VerificationStatus.initial,
+    this.verificationFailure,
   });
 
   AuthState copyWith({
@@ -105,6 +115,8 @@ final class AuthState extends Equatable {
     
     SuccessEntity? successEntity,
     Failure? logOutFailure,
+    VerificationStatus? verificationStatus,
+    Failure? verificationFailure,
   }) {
     return AuthState(
       authStatus: authStatus ?? this.authStatus,
@@ -124,6 +136,8 @@ final class AuthState extends Equatable {
 
       successEntity: successEntity ?? this.successEntity,
       logOutFailure: logOutFailure ?? this.logOutFailure,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      verificationFailure: verificationFailure ?? this.verificationFailure,
     );
   }
 
@@ -146,5 +160,7 @@ final class AuthState extends Equatable {
         
         successEntity,
         logOutFailure,
+        verificationStatus,
+        verificationFailure,
       ];
 }

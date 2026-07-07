@@ -18,6 +18,8 @@ class EndPoint {
   static const String applicant = "$v1/auth/register";
   static const String applicantStatus = "$v1/auth/applicant-status";
   static const String logOut = "$v1/auth/logout";
+  static const String resendEmailVerification = "$v1/auth/email/resend";
+  static const String me = "$v1/auth/me";
   static const String refreshToken = "$v1/refreshToken";
   static const String userProfile = "$v1/students/{id}";
   static const String accountProfile = "$v1/account/profile";

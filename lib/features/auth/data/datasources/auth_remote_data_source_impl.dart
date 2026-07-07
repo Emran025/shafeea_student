@@ -1,6 +1,7 @@
 // features/auth/data/datasources/auth_remote_data_source_impl.dart
 
 import 'package:shafeea/core/error/failures.dart';
+import 'package:shafeea/features/auth/data/models/user_model.dart';
 
 import '../../../../core/api/api_consumer.dart';
 import '../../../../core/api/end_ponits.dart';
@@ -54,20 +55,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<AuthResponseModel> registerStudent({required RegisterRequestModel requestModel}) async {
+  Future<AuthResponseModel> registerStudent({
+    required RegisterRequestModel requestModel,
+  }) async {
     try {
-
       final json = await api.post(
-      EndPoint.applicant,
-      data: requestModel.toJson(),
-    );
+        EndPoint.applicant,
+        data: requestModel.toJson(),
+      );
 
-    return _validateAndParse<AuthResponseModel>(
-      json,
-      (map) => AuthResponseModel.fromJson(map),
-      'Invalid change-password response format',
-    );
-
+      return _validateAndParse<AuthResponseModel>(
+        json,
+        (map) => AuthResponseModel.fromJson(map),
+        'Invalid change-password response format',
+      );
     } catch (e) {
       rethrow;
     }
@@ -101,6 +102,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       json,
       (map) => SuccessModel.fromJson(map),
       'Invalid forget-pass response format',
+    );
+  }
+
+  @override
+  Future<SuccessModel> resendEmailVerification() async {
+    final json = await api.post(EndPoint.resendEmailVerification);
+    return _validateAndParse<SuccessModel>(
+      json,
+      (map) => SuccessModel.fromJson(map),
+      'Invalid resend-verification response format',
+    );
+  }
+
+  @override
+  Future<UserModel> getProfile() async {
+    final json = await api.get(EndPoint.me);
+    final data = json['data'] ?? {};
+    return _validateAndParse<UserModel>(
+      data['user'] ?? {},
+      (map) => UserModel.fromJson(map),
+      'Invalid profile response format',
     );
   }
 
