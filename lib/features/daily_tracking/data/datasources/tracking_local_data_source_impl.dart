@@ -170,7 +170,7 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
         additionalWhere: 'isDeleted = ?',
         additionalArgs: [0],
       )).first;
-      
+
       final trackingRecord = await _findOrCreateParentDraftTracking(
         db,
         studentEnrollmentDbId,

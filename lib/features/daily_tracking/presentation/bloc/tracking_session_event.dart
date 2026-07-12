@@ -23,7 +23,6 @@ class TaskTypeChanged extends TrackingSessionEvent {
   List<Object> get props => [newType];
 }
 
-
 /// Dispatched when the user taps the end-of-ayah symbol to mark the recitation range.
 class RecitationRangeEnded extends TrackingSessionEvent {
   final int pageNumber;
@@ -46,12 +45,9 @@ class HistoricalMistakesRequested extends TrackingSessionEvent {
   List<Object> get props => [fromPage ??0 , toPage ?? 0];
 }
 
-
-
 /// Dispatched when the user navigates to a student's profile screen
 /// to fetch their detailed information.
 final class FollowUpReportFetched extends TrackingSessionEvent {
- 
   const FollowUpReportFetched();
 
   @override
@@ -66,9 +62,13 @@ class WordTappedForMistake extends TrackingSessionEvent {
   final int wordIndex;
   final MistakeType newMistakeType;
 
-  const WordTappedForMistake({required this.ayahId, required this.wordIndex ,required this.newMistakeType,});
+  const WordTappedForMistake({
+    required this.ayahId,
+    required this.wordIndex,
+    required this.newMistakeType,
+  });
   @override
-  List<Object> get props => [ayahId, wordIndex,newMistakeType];
+  List<Object> get props => [ayahId, wordIndex, newMistakeType];
 }
 
 /// Dispatched from the Task Report Dialog when a teacher categorizes a mistake.

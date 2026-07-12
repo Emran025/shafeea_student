@@ -4,7 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../../core/constants/tracking_unit_detail.dart';
+import '../../../../core/constants/tracking_unit_cache.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/models/mistake_type.dart';
 import '../../../../core/utils/data_status.dart';
@@ -109,22 +109,19 @@ class TrackingSessionBloc
     int addedNumber = 0;
 
     while (gapPageCount > currentDetail.toTrackingUnitId.toPage &&
-        trackingUnitDetail[(currentDetail.toTrackingUnitId.id - 1) +
-                    addedNumber]
+        TrackingUnitCache.instance
+                .byIndex((currentDetail.toTrackingUnitId.id - 1) + addedNumber)
                 .unitId ==
             currentDetail.toTrackingUnitId.unitId) {
-      gapPageCount -=
-          (trackingUnitDetail[(currentDetail.toTrackingUnitId.id - 1) +
-                  addedNumber]
-              .toAyah -
-          trackingUnitDetail[(currentDetail.toTrackingUnitId.id - 1) +
-                  addedNumber]
-              .fromAyah);
+      final row = TrackingUnitCache.instance.byIndex(
+        (currentDetail.toTrackingUnitId.id - 1) + addedNumber,
+      );
+      gapPageCount -= (row.toAyah - row.fromAyah);
       ++addedNumber;
     }
-    final newToTrackingUnitId =
-        trackingUnitDetail[(currentDetail.toTrackingUnitId.id - 1) +
-            addedNumber];
+    final newToTrackingUnitId = TrackingUnitCache.instance.byIndex(
+      (currentDetail.toTrackingUnitId.id - 1) + addedNumber,
+    );
     final gap = double.parse("$gapPageCount.${event.ayah}");
 
     // Manually rebuild the entity with the new `toTrackingUnitId`
@@ -199,9 +196,7 @@ class TrackingSessionBloc
 
     emit(state.copyWith(taskProgress: updatedProgress));
 
-    await _saveDraftMistakesUC(
-      updatedMistakes,
-    );
+    await _saveDraftMistakesUC(updatedMistakes);
   }
 
   // The helper method remains the same and is still very useful.

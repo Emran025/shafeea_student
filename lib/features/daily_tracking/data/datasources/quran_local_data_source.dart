@@ -4,6 +4,8 @@ import 'dart:async';
 import 'package:shafeea/features/daily_tracking/data/models/ayah_model.dart';
 import 'package:shafeea/features/daily_tracking/data/models/surah_model.dart';
 
+import '../../../../core/models/tracking_unit_model.dart';
+
 /// The abstract contract for the local data source of Quran data.
 ///
 /// This defines the methods that any implementation must provide, ensuring
@@ -25,4 +27,13 @@ abstract class QuranLocalDataSource {
   Future<List<SurahModel>> getSurahsList();
 
   Future<AyahModel> getAyahById(int ayahId);
+
+  /// Fetches [Tracking_Unit] rows for a given [unitId], with surah names
+  /// resolved via a JOIN against the [Sora] table.
+  ///
+  /// Unit IDs follow the [Unit] table convention:
+  ///   1 = juz, 2 = hizb, 3 = half-hizb, 4 = quarter-hizb, 5 = page
+  ///
+  /// Throws a [CacheException] if the database cannot be accessed.
+  Future<List<TrackingUnitDetailModel>> getTrackingUnitsByType(int unitId);
 }

@@ -142,14 +142,14 @@ final class TrackingRepositoryImpl implements TrackingRepository {
   }
 
   @override
-    Future<Either<Failure, Unit>> saveDraftMistakes({
+  Future<Either<Failure, Unit>> saveDraftMistakes({
     required List<Mistake> mistakes,
   }) async {
     return _tryCatch<Unit>(() async {
-     final mistakeModels = mistakes.map((e)=>MistakeModel.fromEntity(e)).toList();
-       await _localDataSource.saveDraftMistakes(
-        mistakes: mistakeModels,
-      );
+      final mistakeModels = mistakes
+          .map((e) => MistakeModel.fromEntity(e))
+          .toList();
+      await _localDataSource.saveDraftMistakes(mistakes: mistakeModels);
       return unit;
     });
   }

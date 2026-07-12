@@ -323,7 +323,7 @@ class _DashboardState extends State<Dashboard> {
               Expanded(
                 child: _buildDetailColumnModern(
                   "مـــن :",
-                  section.fromTrackingUnitId.fromSurah,
+                  section.fromTrackingUnitId.fromSurahName,
                   section.fromTrackingUnitId.fromPage.toString(),
                   section.fromTrackingUnitId.fromAyah.toString(),
                 ),
@@ -332,7 +332,7 @@ class _DashboardState extends State<Dashboard> {
               Expanded(
                 child: _buildDetailColumnModern(
                   "حـتـى :",
-                  section.toTrackingUnitId.toSurah,
+                  section.toTrackingUnitId.toSurahName,
                   section.toTrackingUnitId.toPage.toString(),
                   section.toTrackingUnitId.toAyah.toString(),
                 ),

@@ -123,8 +123,7 @@ class MockResendVerificationEmailUseCase extends Mock
 class MockSuggestUsernameUseCase extends Mock
     implements SuggestUsernameUseCase {}
 
-class MockCheckUsernameUseCase extends Mock
-    implements CheckUsernameUseCase {}
+class MockCheckUsernameUseCase extends Mock implements CheckUsernameUseCase {}
 
 // ============================================================================
 // MOCK CLASSES - Home Feature
@@ -207,6 +206,7 @@ class MockGetOrCreateTodayTrackingDetails extends Mock
     implements GetOrCreateTodayTrackingDetails {}
 
 class MockSaveTaskProgress extends Mock implements SaveTaskProgress {}
+
 class MocksaveDraftMistakes extends Mock implements SaveDraftMistakesUseCase {}
 
 class MockGetAllMistakes extends Mock implements GetAllMistakes {}
@@ -361,8 +361,26 @@ void registerFallbackValues() {
         uuid: 'uuid',
         trackingId: '1',
         trackingTypeId: TrackingType.memorization,
-        fromTrackingUnitId: TrackingUnitDetail(1, 1, '', 1, 1, '', 1, 1),
-        toTrackingUnitId: TrackingUnitDetail(1, 1, '', 1, 1, '', 1, 1),
+        fromTrackingUnitId: TrackingUnitDetail(
+          id: 1,
+          unitId: 1,
+          fromSurahName: '',
+          fromPage: 1,
+          fromAyah: 1,
+          toSurahName: '',
+          toPage: 1,
+          toAyah: 1,
+        ),
+        toTrackingUnitId: TrackingUnitDetail(
+          id: 1,
+          unitId: 1,
+          fromSurahName: '',
+          fromPage: 1,
+          fromAyah: 1,
+          toSurahName: '',
+          toPage: 1,
+          toAyah: 1,
+        ),
         actualAmount: 1,
         comment: '',
         status: '',

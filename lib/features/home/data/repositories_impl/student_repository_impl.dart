@@ -51,7 +51,7 @@ final class StudentRepositoryImpl implements StudentRepository {
 
       // 2. Immediately save to the local DB for instant UI feedback.
       await _localDataSource.upsertStudent(model);
-      
+
       // 5. Return the updated entity.
       return Right(student);
     } on CacheException catch (e) {
@@ -282,17 +282,17 @@ final class StudentRepositoryImpl implements StudentRepository {
               detail.comment,
               detail.status,
               detail.fromTrackingUnitId.unitId,
-              detail.fromTrackingUnitId.fromSurah,
+              detail.fromTrackingUnitId.fromSurahName,
               detail.fromTrackingUnitId.fromPage,
               detail.fromTrackingUnitId.fromAyah,
-              detail.fromTrackingUnitId.toSurah,
+              detail.fromTrackingUnitId.fromSurahName,
               detail.fromTrackingUnitId.toPage,
               detail.fromTrackingUnitId.toAyah,
               detail.toTrackingUnitId.unitId,
-              detail.toTrackingUnitId.fromSurah,
-              detail.toTrackingUnitId.fromPage,
               detail.toTrackingUnitId.fromAyah,
-              detail.toTrackingUnitId.toSurah,
+              detail.toTrackingUnitId.fromSurahName,
+              detail.toTrackingUnitId.fromAyah,
+              detail.toTrackingUnitId.toSurahName,
               detail.toTrackingUnitId.toPage,
               detail.toTrackingUnitId.toAyah,
               mistakesJson,
@@ -301,7 +301,7 @@ final class StudentRepositoryImpl implements StudentRepository {
         }
       }
     });
-    return  Csv().encode(rows);
+    return Csv().encode(rows);
   }
 
   String _formatTrackingAsJson(Map<String, List<TrackingModel>> reports) {
