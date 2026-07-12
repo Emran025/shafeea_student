@@ -8,6 +8,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
   const StudentApplicantModel({
     required super.name,
     required super.email,
+    required super.username,
     required super.password,
     required super.bio,
     required super.qualifications,
@@ -26,6 +27,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
     return {
       'name': name,
       'email': email,
+      'username': username,
       'password': password,
       'bio': bio,
       'qualifications': qualifications,
@@ -45,6 +47,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
     return StudentApplicantModel(
       name: entity.name,
       email: entity.email,
+      username: entity.username,
       password: entity.password,
       bio: entity.bio,
       qualifications: entity.qualifications,

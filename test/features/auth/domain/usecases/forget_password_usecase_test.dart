@@ -27,16 +27,16 @@ void main() {
       () async {
         // Arrange
         when(
-          () => mockAuthRepository.forgetPassword(email: tEmail),
+          () => mockAuthRepository.forgetPassword(login: tEmail),
         ).thenAnswer((_) async =>  Right(tSuccessEntity));
 
         // Act
-        final result = await useCase(email: tEmail);
+        final result = await useCase(login: tEmail);
 
         // Assert
         expect(result,  Right(tSuccessEntity));
         verify(
-          () => mockAuthRepository.forgetPassword(email: tEmail),
+          () => mockAuthRepository.forgetPassword(login: tEmail),
         ).called(1);
         verifyNoMoreInteractions(mockAuthRepository);
       },
@@ -46,15 +46,15 @@ void main() {
       // Arrange
       const tFailure = ServerFailure(message: 'Email not found');
       when(
-        () => mockAuthRepository.forgetPassword(email: tEmail),
+        () => mockAuthRepository.forgetPassword(login: tEmail),
       ).thenAnswer((_) async => const Left(tFailure));
 
       // Act
-      final result = await useCase(email: tEmail);
+      final result = await useCase(login: tEmail);
 
       // Assert
       expect(result, const Left(tFailure));
-      verify(() => mockAuthRepository.forgetPassword(email: tEmail)).called(1);
+      verify(() => mockAuthRepository.forgetPassword(login: tEmail)).called(1);
     });
 
     test(
@@ -63,16 +63,16 @@ void main() {
         // Arrange
         const tFailure = NetworkFailure(message: 'No internet connection');
         when(
-          () => mockAuthRepository.forgetPassword(email: tEmail),
+          () => mockAuthRepository.forgetPassword(login: tEmail),
         ).thenAnswer((_) async => const Left(tFailure));
 
         // Act
-        final result = await useCase(email: tEmail);
+        final result = await useCase(login: tEmail);
 
         // Assert
         expect(result, const Left(tFailure));
         verify(
-          () => mockAuthRepository.forgetPassword(email: tEmail),
+          () => mockAuthRepository.forgetPassword(login: tEmail),
         ).called(1);
       },
     );
@@ -81,15 +81,15 @@ void main() {
       // Arrange
       const tDifferentEmail = 'different@example.com';
       when(
-        () => mockAuthRepository.forgetPassword(email: tDifferentEmail),
+        () => mockAuthRepository.forgetPassword(login: tDifferentEmail),
       ).thenAnswer((_) async => Right(tSuccessEntity));
 
       // Act
-      await useCase(email: tDifferentEmail);
+      await useCase(login: tDifferentEmail);
 
       // Assert
       verify(
-        () => mockAuthRepository.forgetPassword(email: tDifferentEmail),
+        () => mockAuthRepository.forgetPassword(login: tDifferentEmail),
       ).called(1);
     });
 
@@ -98,16 +98,16 @@ void main() {
       const tInvalidEmail = 'invalid-email';
       const tFailure = ServerFailure(message: 'Invalid email format');
       when(
-        () => mockAuthRepository.forgetPassword(email: tInvalidEmail),
+        () => mockAuthRepository.forgetPassword(login: tInvalidEmail),
       ).thenAnswer((_) async => const Left(tFailure));
 
       // Act
-      final result = await useCase(email: tInvalidEmail);
+      final result = await useCase(login: tInvalidEmail);
 
       // Assert
       expect(result, const Left(tFailure));
       verify(
-        () => mockAuthRepository.forgetPassword(email: tInvalidEmail),
+        () => mockAuthRepository.forgetPassword(login: tInvalidEmail),
       ).called(1);
     });
   });

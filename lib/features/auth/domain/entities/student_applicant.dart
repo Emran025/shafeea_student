@@ -4,6 +4,7 @@ import 'package:shafeea/core/models/gender.dart';
 class StudentApplicantEntity extends Equatable {
   final String name;
   final String email;
+  final String username;
   final String password;
   final String bio;
   final String qualifications;
@@ -20,6 +21,7 @@ class StudentApplicantEntity extends Equatable {
   const StudentApplicantEntity({
     required this.name,
     required this.email,
+    required this.username,
     required this.password,
     required this.bio,
     required this.qualifications,
@@ -35,5 +37,5 @@ class StudentApplicantEntity extends Equatable {
   });
 
   @override
-  List<Object?> get props => [email, name, phone];
+  List<Object?> get props => [email, username, name, phone];
 }

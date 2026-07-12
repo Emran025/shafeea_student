@@ -115,10 +115,10 @@ final class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, SuccessEntity>> forgetPassword({
-    required String email,
+    required String login,
   }) async {
     final either = await _executeAuthOperation(
-      () => _remoteDataSource.forgetPassword(email: email),
+      () => _remoteDataSource.forgetPassword(login: login),
     );
     either.fold((failure) => null, (user) => null);
 
@@ -315,5 +315,29 @@ final class AuthRepositoryImpl implements AuthRepository {
       await _localDataSource.cacheUser(userModel);
       return userModel.toUserEntity();
     });
+  }
+
+  @override
+  Future<Either<Failure, String>> suggestUsername(String name) async {
+    try {
+      final suggestion = await _remoteDataSource.suggestUsername(name:name);
+      return Right(suggestion);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(NetworkFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> checkUsername(String username) async {
+    try {
+      final checkion = await _remoteDataSource.checkUsernameAvailability(username:username);
+      return Right(checkion);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(NetworkFailure(message: e.toString()));
+    }
   }
 }

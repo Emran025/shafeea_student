@@ -12,7 +12,7 @@ abstract class AuthRepository {
   });
 
   Future<Either<Failure, SuccessEntity>> forgetPassword({
-    required String email,
+    required String login,
   });
 
   Future<Either<Failure, UserEntity>> getUserProfile();
@@ -41,4 +41,18 @@ abstract class AuthRepository {
   Future<Either<Failure, SuccessEntity>> resendEmailVerification();
 
   Future<Either<Failure, UserEntity>> getProfileFromServer();
+
+  /// Returns a sanitized username candidate derived from [name].
+  ///
+  /// Calls the public `/username/suggest` endpoint (no auth required).
+  /// Returns [Right(String)] with the suggested username, or [Left(Failure)]
+  /// on a network error. An empty name always returns [Right('')].
+  Future<Either<Failure, String>> suggestUsername(String name);
+
+  /// Returns a sanitized username candidate derived from [name].
+  ///
+  /// Calls the public `/username/check` endpoint (no auth required).
+  /// Returns [Right(String)] with the checked username, or [Left(Failure)]
+  /// on a network error. An empty name always returns [Right('')].
+  Future<Either<Failure, bool>> checkUsername(String username);
 }

@@ -6,6 +6,8 @@ import '../../../../core/error/failures.dart';
 import '../../domain/entities/login_credentials_entity.dart';
 import '../../domain/entities/student_applicant.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/usecases/auth_check_username_usecase.dart';
+import '../../domain/usecases/auth_suggest_username_usecase.dart';
 import '../../domain/usecases/change_password_usecase.dart';
 import '../../domain/usecases/forget_password_usecase.dart';
 import '../../domain/usecases/get_all_users_use_case.dart';
@@ -28,9 +30,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final ResendVerificationEmailUseCase resendVerificationEmailUC;
 
   final ChangePasswordUseCase changePasswordUC;
-// Dependency Injection
+  // Dependency Injection
   final GetAllUsersUseCase getAllUsersUC;
-final SwitchUserUseCase switchUserUC;
+  final SwitchUserUseCase switchUserUC;
+  final SuggestUsernameUseCase suggestUsernameUC;
+  final CheckUsernameUseCase checkUsernameUC;
 
   AuthBloc(
     this.logInUC,
@@ -42,7 +46,8 @@ final SwitchUserUseCase switchUserUC;
     this.getAllUsersUC,
     this.registerStudentUC,
     this.resendVerificationEmailUC,
-
+    this.suggestUsernameUC,
+    this.checkUsernameUC,
   ) : super(AuthState()) {
     on<LogInRequested>(_onLogIn);
 
@@ -59,7 +64,10 @@ final SwitchUserUseCase switchUserUC;
 
     on<ResendVerificationEmailRequested>(_onResendVerificationEmail);
     on<CheckVerificationStatusRequested>(_onCheckVerificationStatus);
+    on<UsernameRequested>(_onSuggestUsername);
+    on<UsernameCheckRequested>(_onCheckUsername);
   }
+
   void _appStarted(AppStarted event, Emitter<AuthState> emit) async {
     final loggedIn = await checkLogInUC();
     loggedIn.fold(
@@ -114,7 +122,7 @@ final SwitchUserUseCase switchUserUC;
     Emitter<AuthState> emit,
   ) async {
     emit(state.copyWith(forgetPasswordStatus: ForgetPasswordStatus.initial));
-    final user = await forgetPasswordUC(email: event.email);
+    final user = await forgetPasswordUC(login: event.login);
     user.fold(
       (message) => emit(
         state.copyWith(
@@ -159,7 +167,7 @@ final SwitchUserUseCase switchUserUC;
   }
 
   /// Handles the request to fetch all locally cached users.
-  /// 
+  ///
   /// Emits [GetUserStatus.loading] initially, followed by either:
   /// - [GetUserStatus.success] with the list of users.
   /// - [GetUserStatus.failure] with the error details.
@@ -191,7 +199,9 @@ final SwitchUserUseCase switchUserUC;
   }
 
   void _logOut(LogOutRequested event, Emitter<AuthState> emit) async {
-    final logOutRequested = await logOutUC(deleteCredentials : event.deleteCredentials);
+    final logOutRequested = await logOutUC(
+      deleteCredentials: event.deleteCredentials,
+    );
     logOutRequested.fold(
       (message) {
         if (message.message.contains('Token is invalid') ||
@@ -222,15 +232,12 @@ final SwitchUserUseCase switchUserUC;
   }
 
   /// Handles the user switching process.
-  /// 
+  ///
   /// When successful, it updates the [AuthState.user] to the new user
   /// and ensures [AuthState.authStatus] is authenticated.
-  void _onSwitchUser(
-    SwitchUserRequested event,
-    Emitter<AuthState> emit,
-  ) async {
+  void _onSwitchUser(SwitchUserRequested event, Emitter<AuthState> emit) async {
     // Optionally emit a loading state if you want to show a spinner during the switch
-    // emit(state.copyWith(status: LogInStatus.loading)); 
+    // emit(state.copyWith(status: LogInStatus.loading));
 
     final result = await switchUserUC(userId: event.userId);
 
@@ -253,8 +260,10 @@ final SwitchUserUseCase switchUserUC;
         ),
       ),
     );
-  }/// Handles the student registration submission within the AuthBloc.
-  /// 
+  }
+
+  /// Handles the student registration submission within the AuthBloc.
+  ///
   /// It transitions the [registrationStatus] to [StudentRegistrationStatus.submitting],
   /// executes the registration use case, and updates the state based on the result.
   Future<void> _onSubmitRegistration(
@@ -269,8 +278,7 @@ final SwitchUserUseCase switchUserUC;
     final result = await registerStudentUC(event.studentApplicant);
 
     // 3. Handle the result (Success or Failure).
-    result.
-    fold(
+    result.fold(
       (message) => emit(
         state.copyWith(
           status: LogInStatus.failure,
@@ -297,14 +305,18 @@ final SwitchUserUseCase switchUserUC;
     emit(state.copyWith(verificationStatus: VerificationStatus.loading));
     final result = await resendVerificationEmailUC();
     result.fold(
-      (failure) => emit(state.copyWith(
-        verificationStatus: VerificationStatus.failure,
-        verificationFailure: failure,
-      )),
-      (success) => emit(state.copyWith(
-        verificationStatus: VerificationStatus.success,
-        successEntity: success,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          verificationStatus: VerificationStatus.failure,
+          verificationFailure: failure,
+        ),
+      ),
+      (success) => emit(
+        state.copyWith(
+          verificationStatus: VerificationStatus.success,
+          successEntity: success,
+        ),
+      ),
     );
   }
 
@@ -315,15 +327,97 @@ final SwitchUserUseCase switchUserUC;
     emit(state.copyWith(verificationStatus: VerificationStatus.loading));
     final result = await logInUC.repository.getProfileFromServer();
     result.fold(
-      (failure) => emit(state.copyWith(
-        verificationStatus: VerificationStatus.failure,
-        verificationFailure: failure,
-      )),
-      (user) => emit(state.copyWith(
-        verificationStatus: VerificationStatus.initial,
-        user: user,
-        selectedUser: user,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          verificationStatus: VerificationStatus.failure,
+          verificationFailure: failure,
+        ),
+      ),
+      (user) => emit(
+        state.copyWith(
+          verificationStatus: VerificationStatus.initial,
+          user: user,
+          selectedUser: user,
+        ),
+      ),
+    );
+  }
+
+  /// Fetches a username Check from the backend when the name field changes.
+  /// Uses [restartable()] so rapid typing cancels the previous in-flight request.
+  Future<void> _onCheckUsername(
+    UsernameCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    if (event.name.trim().isEmpty) {
+      emit(
+        state.copyWith(
+          usernameCheckStatus: UsernameCheckStatus.initial,
+          usernameCheck: false,
+        ),
+      );
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        usernameCheckStatus: UsernameCheckStatus.loading,
+      ),
+    );
+
+    final result = await checkUsernameUC(event.name);
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          usernameCheckStatus: UsernameCheckStatus.failure,
+        ),
+      ),
+      (check) => emit(
+        state.copyWith(
+          usernameCheckStatus: UsernameCheckStatus.loaded,
+          usernameCheck: check,
+        ),
+      ),
+    );
+  }
+
+  /// Fetches a username check from the backend when the name field changes.
+  /// Uses [restartable()] so rapid typing cancels the previous in-flight request.
+  Future<void> _onSuggestUsername(
+    UsernameRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    if (event.name.trim().isEmpty) {
+      emit(
+        state.copyWith(
+          usernameCheckStatus: UsernameCheckStatus.initial,
+          usernameSuggestion: '',
+        ),
+      );
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        usernameSuggestionStatus: UsernameSuggestionStatus.loading,
+      ),
+    );
+
+    final result = await suggestUsernameUC(event.name);
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          usernameSuggestionStatus: UsernameSuggestionStatus.failure,
+        ),
+      ),
+      (suggestion) => emit(
+        state.copyWith(
+          usernameSuggestionStatus: UsernameSuggestionStatus.loaded,
+          usernameSuggestion: suggestion,
+        ),
+      ),
     );
   }
 }

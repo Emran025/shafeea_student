@@ -41,10 +41,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<SuccessModel> forgetPassword({required String email}) async {
+  Future<SuccessModel> forgetPassword({required String login}) async {
     final json = await api.post(
       EndPoint.forgetPassword,
-      data: {ApiKey.email: email},
+      data: {ApiKey.logIn: login},
     );
 
     return _validateAndParse<SuccessModel>(
@@ -52,6 +52,43 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       (map) => SuccessModel.fromJson(map),
       'Invalid forget-pass response format',
     );
+  }
+
+  @override
+  Future<bool> checkUsernameAvailability({required String username}) async {
+    final json = await api.get(
+      EndPoint.checkUsername,
+      queryParameters: {'username': username},
+    );
+
+    final data = json is Map<String, dynamic> ? (json['data'] ?? json) : json;
+    if (data is Map<String, dynamic>) {
+      return data['available'] == true;
+    }
+
+    return false;
+  }
+
+  @override
+  Future<String> suggestUsername({required String name}) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '';
+
+    try {
+      final json = await api.get(
+        EndPoint.usernameSuggest,
+        queryParameters: {'name': trimmed},
+      );
+
+      if (json is Map<String, dynamic>) {
+        final data = json['data'] as Map<String, dynamic>?;
+        return (data?['username'] as String?) ?? '';
+      }
+      return '';
+    } catch (_) {
+      // Degrade gracefully — the suggestion is a UX hint, not a hard requirement.
+      return '';
+    }
   }
 
   @override

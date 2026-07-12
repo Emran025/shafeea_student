@@ -16,7 +16,14 @@ abstract class AuthRemoteDataSource {
   Future<AuthResponseModel> logIn({required LogInRequestModel requestModel});
 
   /// Requests a password reset code.
-  Future<SuccessModel> forgetPassword({required String email});
+  Future<SuccessModel> forgetPassword({required String login});
+
+  /// Checks whether a username is available.
+  Future<bool> checkUsernameAvailability({required String username});
+
+  /// Fetches a username suggestion derived from [name] via the public
+  /// `/username/suggest` web endpoint. The result is NOT uniqueness-checked.
+  Future<String> suggestUsername({required String name});
   Future<SuccessModel> changePassword({
     required String currentPassword,
     required String newPassword,

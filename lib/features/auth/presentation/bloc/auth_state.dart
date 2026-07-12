@@ -16,6 +16,10 @@ enum ChangePasswordStatus { initial, submitting, success, failure }
 
 enum VerificationStatus { initial, loading, success, failure }
 
+enum UsernameSuggestionStatus { initial, loading, loaded, failure }
+
+enum UsernameCheckStatus { initial, loading, loaded, failure }
+
 /// -----------------------------------------------------------------
 /// AuthState Class
 /// -----------------------------------------------------------------
@@ -46,7 +50,6 @@ final class AuthState extends Equatable {
   final ChangePasswordStatus changePasswordStatus;
   final Failure? changePasswordFailure;
 
-
   // --- Shared Success Entity ---
   final SuccessEntity? successEntity;
 
@@ -57,6 +60,13 @@ final class AuthState extends Equatable {
   final VerificationStatus verificationStatus;
   final Failure? verificationFailure;
 
+  // --- Username Suggestion State ---
+  final UsernameSuggestionStatus usernameSuggestionStatus;
+  final String usernameSuggestion;
+
+  // --- Username Check State ---
+  final UsernameCheckStatus usernameCheckStatus;
+  final bool usernameCheck;
   const AuthState({
     // General
     this.authStatus = AuthStatus.initializing,
@@ -93,6 +103,14 @@ final class AuthState extends Equatable {
     // Verification
     this.verificationStatus = VerificationStatus.initial,
     this.verificationFailure,
+
+    // Username Suggestion
+    this.usernameSuggestionStatus = UsernameSuggestionStatus.initial,
+    this.usernameSuggestion = '',
+
+    // Username Check
+    this.usernameCheckStatus = UsernameCheckStatus.initial,
+    this.usernameCheck = false,
   });
 
   AuthState copyWith({
@@ -112,11 +130,19 @@ final class AuthState extends Equatable {
     Failure? changePasswordFailure,
     // New Params
     Failure? registrationFailure,
-    
+
     SuccessEntity? successEntity,
     Failure? logOutFailure,
     VerificationStatus? verificationStatus,
     Failure? verificationFailure,
+
+    // Username Suggestion
+    UsernameSuggestionStatus? usernameSuggestionStatus,
+    String? usernameSuggestion,
+
+    // Username Check
+    UsernameCheckStatus? usernameCheckStatus,
+    bool? usernameCheck,
   }) {
     return AuthState(
       authStatus: authStatus ?? this.authStatus,
@@ -130,37 +156,55 @@ final class AuthState extends Equatable {
       usersListStatus: usersListStatus ?? this.usersListStatus,
       usersListFailure: usersListFailure ?? this.usersListFailure,
       forgetPasswordStatus: forgetPasswordStatus ?? this.forgetPasswordStatus,
-      forgetPasswordFailure: forgetPasswordFailure ?? this.forgetPasswordFailure,
+      forgetPasswordFailure:
+          forgetPasswordFailure ?? this.forgetPasswordFailure,
       changePasswordStatus: changePasswordStatus ?? this.changePasswordStatus,
-      changePasswordFailure: changePasswordFailure ?? this.changePasswordFailure,
+      changePasswordFailure:
+          changePasswordFailure ?? this.changePasswordFailure,
 
       successEntity: successEntity ?? this.successEntity,
       logOutFailure: logOutFailure ?? this.logOutFailure,
       verificationStatus: verificationStatus ?? this.verificationStatus,
       verificationFailure: verificationFailure ?? this.verificationFailure,
+
+      // Username Suggestion
+      usernameSuggestionStatus:
+          usernameSuggestionStatus ?? this.usernameSuggestionStatus,
+      usernameSuggestion: usernameSuggestion ?? this.usernameSuggestion,
+
+      // Username Check
+      usernameCheckStatus:
+          usernameCheckStatus ?? this.usernameCheckStatus,
+      usernameCheck: usernameCheck ?? this.usernameCheck,
     );
   }
 
   @override
   List<Object?> get props => [
-        authStatus,
-        user,
-        failure,
-        status,
-        getUserStatus,
-        selectedUser,
-        getUserFailure,
-        usersList,
-        usersListStatus,
-        usersListFailure,
-        forgetPasswordStatus,
-        forgetPasswordFailure,
-        changePasswordStatus,
-        changePasswordFailure,
-        
-        successEntity,
-        logOutFailure,
-        verificationStatus,
-        verificationFailure,
-      ];
+    authStatus,
+    user,
+    failure,
+    status,
+    getUserStatus,
+    selectedUser,
+    getUserFailure,
+    usersList,
+    usersListStatus,
+    usersListFailure,
+    forgetPasswordStatus,
+    forgetPasswordFailure,
+    changePasswordStatus,
+    changePasswordFailure,
+
+    successEntity,
+    logOutFailure,
+    verificationStatus,
+    verificationFailure,
+
+    usernameSuggestionStatus,
+    usernameSuggestion,
+
+    usernameCheckStatus,
+    usernameCheck,
+  ];
 }

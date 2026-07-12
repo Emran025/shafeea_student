@@ -15,6 +15,7 @@ class EndPoint {
   static const String studentTrackings = '$v1/students/{id}/trackings';
   static const String logIn = "$v1/auth/login";
   static const String forgetPassword = "$v1/auth/forgot-password";
+  static const String checkUsername = "$v1/auth/check-username";
   static const String applicant = "$v1/auth/register";
   static const String applicantStatus = "$v1/auth/applicant-status";
   static const String logOut = "$v1/auth/logout";
@@ -25,6 +26,10 @@ class EndPoint {
   static const String accountProfile = "$v1/account/profile";
   static const String changePassword = "$v1/account/change-password";
   static const String sessions = "$v1/account/sessions";
+
+  /// Public endpoint: returns a sanitized username candidate from a name.
+  /// No authentication required. Query param: `name`.
+  static const String usernameSuggest = "$v1/auth/username/suggest";
 
   static const String privacyPolicy = "$v1/help/privacy-policy";
   static const String faqs = "$v1/help/faqs";

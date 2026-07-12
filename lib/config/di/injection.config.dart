@@ -42,6 +42,10 @@ import 'package:shafeea/features/auth/data/repositories_impl/auth_repository_imp
     as _i950;
 import 'package:shafeea/features/auth/domain/repositories/auth_repository.dart'
     as _i424;
+import 'package:shafeea/features/auth/domain/usecases/auth_check_username_usecase.dart'
+    as _i1032;
+import 'package:shafeea/features/auth/domain/usecases/auth_suggest_username_usecase.dart'
+    as _i822;
 import 'package:shafeea/features/auth/domain/usecases/change_password_usecase.dart'
     as _i960;
 import 'package:shafeea/features/auth/domain/usecases/check_login_usecase.dart'
@@ -443,18 +447,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i43.UpsertStudent>(
       () => _i43.UpsertStudent(gh<_i634.StudentRepository>()),
     );
-    gh.factory<_i708.AuthBloc>(
-      () => blocModule.authBloc(
-        gh<_i250.LogInUseCase>(),
-        gh<_i186.CheckLogInUseCase>(),
-        gh<_i871.LogOutUseCase>(),
-        gh<_i426.ForgetPasswordUseCase>(),
-        gh<_i960.ChangePasswordUseCase>(),
-        gh<_i1045.GetAllUsersUseCase>(),
-        gh<_i741.SwitchUserUseCase>(),
-        gh<_i268.RegisterStudentUseCase>(),
-        gh<_i334.ResendVerificationEmailUseCase>(),
-      ),
+    gh.lazySingleton<_i1032.CheckUsernameUseCase>(
+      () => _i1032.CheckUsernameUseCase(gh<_i424.AuthRepository>()),
+    );
+    gh.lazySingleton<_i822.SuggestUsernameUseCase>(
+      () => _i822.SuggestUsernameUseCase(gh<_i424.AuthRepository>()),
     );
     gh.factory<_i790.SettingsBloc>(
       () => blocModule.settingsBloc(
@@ -478,6 +475,21 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i564.DeleteStudentUseCase>(),
         gh<_i1070.GetStudentById>(),
         gh<_i314.GetPlanForTheDay>(),
+      ),
+    );
+    gh.factory<_i708.AuthBloc>(
+      () => blocModule.authBloc(
+        gh<_i250.LogInUseCase>(),
+        gh<_i186.CheckLogInUseCase>(),
+        gh<_i871.LogOutUseCase>(),
+        gh<_i426.ForgetPasswordUseCase>(),
+        gh<_i960.ChangePasswordUseCase>(),
+        gh<_i1045.GetAllUsersUseCase>(),
+        gh<_i741.SwitchUserUseCase>(),
+        gh<_i268.RegisterStudentUseCase>(),
+        gh<_i334.ResendVerificationEmailUseCase>(),
+        gh<_i822.SuggestUsernameUseCase>(),
+        gh<_i1032.CheckUsernameUseCase>(),
       ),
     );
     return this;

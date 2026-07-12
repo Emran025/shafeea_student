@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
+import 'package:shafeea/features/auth/domain/usecases/auth_suggest_username_usecase.dart';
+import 'package:shafeea/features/auth/domain/usecases/auth_check_username_usecase.dart';
 import 'package:shafeea/features/auth/domain/usecases/resend_verification_usecase.dart';
 
 // Import your features' use cases and BLoCs here.
@@ -74,6 +76,8 @@ abstract class BlocModule {
     SwitchUserUseCase switchUserUC,
     RegisterStudentUseCase registerStudentUC,
     ResendVerificationEmailUseCase resendVerificationEmailUC,
+    SuggestUsernameUseCase suggestUsernameUC,
+    CheckUsernameUseCase checkUsernameUC
   ) {
     // The cascade operator (..) allows us to call a method on the new instance
     // before returning it, making initial event dispatching clean.
@@ -87,6 +91,8 @@ abstract class BlocModule {
       getAllUsersUC,
       registerStudentUC,
       resendVerificationEmailUC,
+      suggestUsernameUC,
+      checkUsernameUC,
     );
   }
 

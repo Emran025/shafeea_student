@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shafeea/core/models/education_level.dart';
 import 'package:shafeea/core/models/gender.dart';
 
 import 'package:shafeea/features/auth/presentation/bloc/auth_bloc.dart';
@@ -29,6 +32,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
 
   // ── Controllers ─────────────────────────────────────────────────
   late final TextEditingController _nameCtrl;
+  late final TextEditingController _usernameCtrl;
   late final TextEditingController _emailCtrl;
   late final TextEditingController _passCtrl;
   late final TextEditingController _confirmPassCtrl;
@@ -54,6 +58,9 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
   late final Animation<double> _fadeAnim;
   late final Animation<Offset> _slideAnim;
 
+  bool _usernameManuallyEdited = false;
+  Timer? _usernameDebounce;
+
   @override
   void initState() {
     super.initState();
@@ -71,10 +78,14 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
     ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut));
 
     _animCtrl.forward();
+
+    _nameCtrl.addListener(_onNameChanged);
+    _usernameCtrl.addListener(_onUsernameChanged);
   }
 
   void _initControllers() {
     _nameCtrl = TextEditingController();
+    _usernameCtrl = TextEditingController();
     _emailCtrl = TextEditingController();
     _passCtrl = TextEditingController();
     _confirmPassCtrl = TextEditingController();
@@ -85,7 +96,9 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
     _phoneZoneCtrl = TextEditingController();
     _whatsAppPhoneCtrl = TextEditingController();
     _whatsAppZoneCtrl = TextEditingController();
-    _qualificationCtrl = TextEditingController();
+    _qualificationCtrl = TextEditingController(
+      text: EducationLevel.noFormalEducation.labelAr,
+    );
     _memorizationCtrl = TextEditingController();
     _countryCtrl = TextEditingController();
     _residenceCtrl = TextEditingController();
@@ -105,9 +118,13 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
 
   @override
   void dispose() {
+    _usernameDebounce?.cancel();
+    _nameCtrl.removeListener(_onNameChanged);
+    _usernameCtrl.removeListener(_onUsernameChanged);
     _animCtrl.dispose();
     for (final c in [
       _nameCtrl,
+      _usernameCtrl,
       _emailCtrl,
       _passCtrl,
       _confirmPassCtrl,
@@ -144,6 +161,11 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (ctx, state) => _handleBlocListener(ctx, state),
         builder: (ctx, state) {
+          final isChecking =
+              state.usernameCheckStatus == UsernameCheckStatus.loading;
+          final isAvailable = state.usernameCheck;
+          final checkStatus = state.usernameCheckStatus;
+
           return NestedScrollView(
             headerSliverBuilder: (_, __) => [
               SliverAppBar(
@@ -212,6 +234,50 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
                               keyboardType: TextInputType.emailAddress,
                             ),
                             CustomTextField(
+                              controller: _usernameCtrl,
+                              prefixIcon: Icons.person_outline_rounded,
+                              label: 'اسم المستخدم',
+                              keyboardType: TextInputType.text,
+                              suffixIcon: _buildUsernameStatusIcon(
+                                isChecking,
+                                isAvailable,
+                              ),
+                              validator: (val) {
+                                final value = val?.trim() ?? '';
+                                if (value.isEmpty) {
+                                  return 'اسم المستخدم مطلوب';
+                                }
+                                if (checkStatus == UsernameCheckStatus.loaded &&
+                                    !isAvailable) {
+                                  return 'اسم المستخدم مستخدم بالفعل';
+                                }
+                                return null;
+                              },
+                            ),
+                            if (_usernameCtrl.text.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    _usernameStatusText(
+                                      isChecking,
+                                      isAvailable,
+                                      checkStatus,
+                                    ),
+                                    style: TextStyle(
+                                      fontFamily: 'Cairo',
+                                      fontSize: 12,
+                                      color: _usernameStatusColor(
+                                        context,
+                                        isAvailable,
+                                        checkStatus,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            CustomTextField(
                               controller: _passCtrl,
                               prefixIcon: Icons.lock_outline_rounded,
                               label: 'كلمة المرور',
@@ -223,10 +289,12 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
                               label: 'تأكيد كلمة المرور',
                               isPassword: true,
                               validator: (val) {
-                                if (val == null || val.isEmpty)
+                                if (val == null || val.isEmpty) {
                                   return 'حقل تأكيد كلمة المرور مطلوب';
-                                if (val != _passCtrl.text)
+                                }
+                                if (val != _passCtrl.text) {
                                   return 'كلمات المرور غير متطابقة';
+                                }
                                 return null;
                               },
                             ),
@@ -305,18 +373,22 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
                         _buildSection(
                           context,
                           icon: Icons.menu_book_rounded,
-                          title: 'المعلومات القرآنية',
+                          title: 'معلومات التعليم',
                           children: [
-                            CustomTextField(
-                              controller: _qualificationCtrl,
-                              prefixIcon: Icons.school_outlined,
-                              label: 'المؤهل العلمي',
+                            _buildDropdown(
+                              _qualificationCtrl,
+                              "نوع التعليم(المهؤهل)",
+                              [
+                                ...(EducationLevel.values
+                                    .map((e) => e.labelAr)
+                                    .toList()),
+                              ],
                             ),
                             CustomTextField(
                               controller: _memorizationCtrl,
                               prefixIcon: Icons.format_list_numbered_rounded,
                               keyboardType: TextInputType.number,
-                              label: 'عدد الأجزاء المحفوظة',
+                              label: 'الحفظ السابق (بالأجزاء)',
                             ),
                           ],
                         ),
@@ -645,6 +717,67 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
   // ════════════════════════════════════════════════════════════════
   //  LOGIC
   // ════════════════════════════════════════════════════════════════
+  void _onNameChanged() {
+    if (_usernameManuallyEdited) return;
+
+    final name = _nameCtrl.text.trim();
+    context.read<AuthBloc>().add(UsernameRequested(name));
+  }
+
+  void _onUsernameChanged() {
+    _usernameManuallyEdited = true;
+    _usernameDebounce?.cancel();
+    _usernameDebounce = Timer(const Duration(milliseconds: 500), () {
+      final username = _usernameCtrl.text.trim();
+      context.read<AuthBloc>().add(UsernameCheckRequested(username));
+    });
+  }
+
+  Widget? _buildUsernameStatusIcon(bool isChecking, bool isAvailable) {
+    if (isChecking) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    if (isAvailable == true) {
+      return const Icon(Icons.check_circle, color: AppColors.success);
+    }
+
+    if (isAvailable == false) {
+      return const Icon(Icons.cancel, color: AppColors.error);
+    }
+
+    return null;
+  }
+
+  String _usernameStatusText(
+    bool isChecking,
+    bool isAvailable,
+    UsernameCheckStatus status,
+  ) {
+    if (isChecking) return 'جارٍ التحقق من التوفر...';
+    if (status == UsernameCheckStatus.loaded) {
+      return isAvailable ? 'اسم المستخدم متاح' : 'اسم المستخدم مستخدم بالفعل';
+    }
+    return '';
+  }
+
+  Color _usernameStatusColor(
+    BuildContext context,
+    bool isAvailable,
+    UsernameCheckStatus status,
+  ) {
+    if (status == UsernameCheckStatus.loaded) {
+      return isAvailable ? AppColors.success : AppColors.error;
+    }
+    return Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+  }
 
   void _handleBlocListener(BuildContext context, AuthState state) {
     if (state.status == LogInStatus.success) {
@@ -679,6 +812,20 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
           margin: const EdgeInsets.all(12),
         ),
       );
+    }
+
+    // ✅ معالجة اقتراح اسم المستخدم وتحديث الحقل إذا لم يعدل المستخدم يدوياً
+    if (state.usernameSuggestionStatus == UsernameSuggestionStatus.loaded &&
+        !_usernameManuallyEdited) {
+      final suggestion = state.usernameSuggestion;
+      if (suggestion.isNotEmpty && _usernameCtrl.text != suggestion) {
+        _usernameCtrl.text = suggestion;
+      }
+    }
+    // يمكن إضافة معالجة للأخطاء إذا أردت (اختياري)
+    if (state.usernameSuggestionStatus == UsernameSuggestionStatus.failure ||
+        state.usernameCheckStatus == UsernameCheckStatus.failure) {
+      // مثلاً عرض SnackBar أو تجاهل
     }
   }
 
@@ -719,6 +866,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
       final student = StudentApplicantEntity(
         name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
+        username: _usernameCtrl.text.trim().toLowerCase(),
         password: _passCtrl.text,
         bio: _bioCtrl.text.isNotEmpty ? _bioCtrl.text : 'طالب جديد',
         qualifications: _qualificationCtrl.text,
@@ -737,5 +885,52 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
         SubmitStudentRegistration(studentApplicant: student),
       );
     }
+  }
+
+  Widget _buildDropdown(
+    TextEditingController controller,
+    String label,
+    List<String> options,
+  ) {
+    return Container(
+      height: 50,
+      margin: const EdgeInsets.only(bottom: 12, left: 14),
+      child: DropdownButtonFormField<String>(
+        itemHeight: 50,
+        style: const TextStyle(fontFamily: 'Cairo'),
+        borderRadius: BorderRadius.circular(14),
+        value: controller.text.trim(),
+        dropdownColor: AppColors.mediumDark,
+        items: options
+            .map(
+              (e) => DropdownMenuItem(
+                value: e,
+                child: Text(
+                  e == "Male"
+                      ? "ذكر"
+                      : e == "Female" || e == "female"
+                      ? "أنثى"
+                      : e,
+                  style: const TextStyle(
+                    fontFamily: 'Cairo',
+
+                    color: AppColors.lightCream70,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: (val) =>
+            setState(() => controller.text = val ?? options.first),
+        onSaved: (val) => controller.text = val ?? options.first,
+        decoration: InputDecoration(
+          fillColor: AppColors.lightCream12,
+          labelText: label,
+          labelStyle: const TextStyle(fontFamily: 'Cairo'),
+        ),
+      ),
+    );
   }
 }

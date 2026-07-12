@@ -24,6 +24,7 @@ void main() {
     const tStudentApplicant = StudentApplicantEntity(
       name: 'Ahmed Ali',
       email: 'ahmed@example.com',
+      username: 'SecurePass123!',
       password: 'SecurePass123!',
       bio: 'Student bio information',
       qualifications: 'High school diploma',
@@ -128,6 +129,7 @@ void main() {
         name: 'Fatima Hassan',
         email: 'fatima@example.com',
         password: 'AnotherPass456!',
+        username: 'AnotherPass456!',
         bio: 'Different bio',
         qualifications: 'Bachelor degree',
         memorizationLevel: 10,
@@ -152,6 +154,7 @@ void main() {
         name: 'Minimal User',
         email: 'minimal@example.com',
         password: 'MinPass123!',
+        username: 'MinPass123!',
         bio: 'Minimal bio',
         qualifications: 'None',
       );

@@ -23,12 +23,12 @@ class LogInRequested extends AuthEvent {
 
 /// Triggered when the user requests a password reset link via email.
 class ForgetPasswordRequested extends AuthEvent {
-  final String email;
+  final String login;
 
-  const ForgetPasswordRequested({required this.email});
+  const ForgetPasswordRequested({required this.login});
 
   @override
-  List<Object> get props => [email];
+  List<Object> get props => [login];
 }
 
 /// Triggered when the authenticated user wants to change their password.
@@ -91,3 +91,23 @@ class ResendVerificationEmailRequested extends AuthEvent {}
 
 /// Triggered to manually check if the user's email has been verified.
 class CheckVerificationStatusRequested extends AuthEvent {}
+
+
+/// Dispatched when the user types into the name field of the  creation
+/// form to request a backend username suggestion.
+final class UsernameRequested extends AuthEvent {
+  final String name;
+  const UsernameRequested(this.name);
+  @override
+  List<Object> get props => [name];
+}
+
+
+/// Dispatched when the user types into the name field of the  creation
+/// form to request a backend username suggestion.
+final class UsernameCheckRequested extends AuthEvent {
+  final String name;
+  const UsernameCheckRequested(this.name);
+  @override
+  List<Object> get props => [name];
+}
