@@ -17,6 +17,7 @@ import 'package:shafeea/shared/widgets/phone_zone.dart';
 import 'package:shafeea/shared/widgets/pick_date.dart';
 import 'package:shafeea/shared/widgets/pick_time.dart';
 import '../../../../../core/models/countery_model.dart';
+import '../../../../daily_tracking/presentation/pages/quran_memorization_picker.dart';
 
 class CreateStudentAccountPage extends StatefulWidget {
   const CreateStudentAccountPage({super.key});
@@ -386,9 +387,11 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
                             ),
                             CustomTextField(
                               controller: _memorizationCtrl,
-                              prefixIcon: Icons.format_list_numbered_rounded,
+                              prefixIcon: Icons.calendar_month,
                               keyboardType: TextInputType.number,
                               label: 'الحفظ السابق (بالأجزاء)',
+                              onTap: _openMemorizationPicker,
+                              readOnly: true,
                             ),
                           ],
                         ),
@@ -485,6 +488,23 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
           ),
         ],
       ),
+    );
+  }
+
+  // Opens the Quran memorization range picker and writes the returned
+  // signed page count into the "المستوى في الحفظ" field instead of allowing
+  // manual typing.
+  void _openMemorizationPicker(
+    TextEditingController memorizationLevel,
+    String title,
+  ) {
+    showQuranMemorizationPickerDialog(
+      context: context,
+      onConfirm: (fromPage, toPage, fromInfo, toInfo, signedPages) {
+        setState(() {
+          memorizationLevel.text = "$signedPages";
+        });
+      },
     );
   }
 

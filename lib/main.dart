@@ -17,10 +17,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
 
-  // Pre-load all Tracking_Unit rows from the Quran database into the
-  // in-memory cache so that synchronous lookups work throughout the app.
-  await TrackingUnitCache.instance.initialize(sl<QuranLocalDataSource>());
-
   // Initialize date formatting for Arabic locale.
   // This is necessary for proper date formatting in the app.
   await initializeDateFormatting('ar');
@@ -29,6 +25,9 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // Pre-load all Tracking_Unit rows from the Quran database into the
+  // in-memory cache so that synchronous lookups work throughout the app.
+  await TrackingUnitCache.instance.initialize(sl<QuranLocalDataSource>());
   runApp(
     MultiBlocProvider(
       providers: [
