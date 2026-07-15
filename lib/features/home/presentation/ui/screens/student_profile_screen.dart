@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../../core/utils/date_utils_helper.dart';
 import '../../../../../shared/themes/app_theme.dart';
 import '../../../../../core/models/active_status.dart';
 import '../widgets/study_halaqa_card.dart';
@@ -417,7 +418,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  "25  عام",
+                  "${DateUtilsHelper.calculateAge(student.birthDate)}  عام",
                   style: GoogleFonts.cairo(
                     fontSize: 16,
                     color: AppColors.lightCream,
