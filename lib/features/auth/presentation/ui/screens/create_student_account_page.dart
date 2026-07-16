@@ -62,6 +62,9 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
   bool _usernameManuallyEdited = false;
   Timer? _usernameDebounce;
 
+  /// يُخزّن التاريخ الأصلي لإرساله بتنسيق ISO 8601 إلى الـ API
+  DateTime? _selectedBirthDate;
+
   @override
   void initState() {
     super.initState();
@@ -315,8 +318,10 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
                                     controller: _birthDateCtrl,
                                     icon: Icons.cake_outlined,
                                     label: 'تاريخ الميلاد',
-                                    onDateSelected: (d) =>
-                                        _birthDateCtrl.text = formatDate(d),
+                                    onDateSelected: (d) {
+                                      _selectedBirthDate = d;
+                                      _birthDateCtrl.text = formatDate(d);
+                                    },
                                   ),
                                 ),
                               ],
@@ -389,7 +394,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
                               controller: _memorizationCtrl,
                               prefixIcon: Icons.calendar_month,
                               keyboardType: TextInputType.number,
-                              label: 'الحفظ السابق (بالأجزاء)',
+                              label: 'الحفظ السابق (بالصفحات)',
                               onTap: _openMemorizationPicker,
                               readOnly: true,
                             ),
@@ -892,7 +897,9 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
         qualifications: _qualificationCtrl.text,
         memorizationLevel: int.tryParse(_memorizationCtrl.text),
         gender: Gender.fromLabel(_genderCtrl.text),
-        birthDate: _birthDateCtrl.text,
+        birthDate: _selectedBirthDate != null
+            ? formatDateForApi(_selectedBirthDate!)
+            : _birthDateCtrl.text,
         phone: _phoneCtrl.text,
         phoneZone: _phoneZoneCtrl.text.replaceAll('+', ''),
         whatsapp: _whatsAppPhoneCtrl.text,

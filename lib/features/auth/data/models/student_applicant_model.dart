@@ -69,6 +69,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
       id: id,
       name: name,
       email: email,
+      username: username,
       bio: bio,
       memorizationLevel: memorizationLevel.toString(),
       gender: gender ?? Gender.male,

@@ -37,6 +37,7 @@ final class StudentModel {
   final String memorizationLevel;
   final String qualification;
   final bool isDeleted;
+  final String? username;
 
   const StudentModel({
     required this.id,
@@ -59,7 +60,7 @@ final class StudentModel {
     this.avatar,
     this.createdAt,
     this.updatedAt,
-
+    this.username,
     required this.memorizationLevel,
     required this.qualification,
     required this.isDeleted,
@@ -104,6 +105,7 @@ final class StudentModel {
   }
 
   Map<String, dynamic> toMap() {
+    final now = DateTime.now().millisecondsSinceEpoch;
     return {
       'id': int.tryParse(id) ?? 0,
       'uuid': id,
@@ -114,6 +116,7 @@ final class StudentModel {
       'gender': gender.id,
       'birthDate': birthDate,
       'email': email,
+      'username': username,
       'phone': phone,
       'phoneZone': phoneZone,
       'whatsapp': whatsappPhone,
@@ -129,13 +132,12 @@ final class StudentModel {
       'stopReasons': stopReasons,
       'avatar': avatar,
       'memorizationLevel': memorizationLevel,
+      // SQLite schema: createdAt INTEGER NOT NULL, lastModified INTEGER NOT NULL
+      // Must store milliseconds, NOT an ISO string.
       'createdAt':
-          DateTime.tryParse(createdAt ?? "")?.toIso8601String() ??
-          DateTime.now().toIso8601String(),
-
+          DateTime.tryParse(createdAt ?? '')?.millisecondsSinceEpoch ?? now,
       'lastModified':
-          DateTime.tryParse(updatedAt ?? "")?.toIso8601String() ??
-          DateTime.now().toIso8601String(),
+          DateTime.tryParse(updatedAt ?? '')?.millisecondsSinceEpoch ?? now,
       'isDeleted': isDeleted ? 1 : 0,
     };
   }

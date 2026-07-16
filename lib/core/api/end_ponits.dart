@@ -6,7 +6,6 @@ class EndPoint {
   static const String baseUrl = String.fromEnvironment(
     'SHAFEEA_STUDENT_API_URL',
   );
-
   // ── Base prefix ───────────────────────────────────────────────────────────
   static const String v1 = '/api/v1';
 
