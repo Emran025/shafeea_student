@@ -130,6 +130,8 @@ import 'package:shafeea/features/home/domain/usecases/get_plan_for_the_day.dart'
     as _i314;
 import 'package:shafeea/features/home/domain/usecases/get_student_by_id.dart'
     as _i1070;
+import 'package:shafeea/features/home/domain/usecases/save_student_plan.dart'
+    as _i60;
 import 'package:shafeea/features/home/domain/usecases/upsert_student_usecase.dart'
     as _i43;
 import 'package:shafeea/features/home/presentation/bloc/student_bloc.dart'
@@ -175,8 +177,6 @@ import 'package:shafeea/features/settings/presentation/bloc/settings_bloc.dart'
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
 import 'package:sqflite/sqflite.dart' as _i779;
 import 'package:workmanager/workmanager.dart' as _i500;
-
-import '../../features/home/domain/usecases/save_student_plan.dart' as _i635;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -446,8 +446,20 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i1070.GetStudentById>(
       () => _i1070.GetStudentById(gh<_i634.StudentRepository>()),
     );
+    gh.lazySingleton<_i60.SaveStudentPlan>(
+      () => _i60.SaveStudentPlan(gh<_i634.StudentRepository>()),
+    );
     gh.lazySingleton<_i43.UpsertStudent>(
       () => _i43.UpsertStudent(gh<_i634.StudentRepository>()),
+    );
+    gh.factory<_i516.StudentBloc>(
+      () => blocModule.studentBloc(
+        gh<_i43.UpsertStudent>(),
+        gh<_i564.DeleteStudentUseCase>(),
+        gh<_i1070.GetStudentById>(),
+        gh<_i314.GetPlanForTheDay>(),
+        gh<_i60.SaveStudentPlan>(),
+      ),
     );
     gh.lazySingleton<_i1032.CheckUsernameUseCase>(
       () => _i1032.CheckUsernameUseCase(gh<_i424.AuthRepository>()),
@@ -469,15 +481,6 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i1001.GetFaqsUseCase>(),
         gh<_i402.SubmitSupportTicketUseCase>(),
         gh<_i830.GetTermsOfUseUseCase>(),
-      ),
-    );
-    gh.factory<_i516.StudentBloc>(
-      () => blocModule.studentBloc(
-        gh<_i43.UpsertStudent>(),
-        gh<_i564.DeleteStudentUseCase>(),
-        gh<_i1070.GetStudentById>(),
-        gh<_i314.GetPlanForTheDay>(),
-        gh<_i635.SaveStudentPlan>(),
       ),
     );
     gh.factory<_i708.AuthBloc>(

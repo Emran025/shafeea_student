@@ -166,12 +166,23 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
       );
 
       // 2. Fetch the enrollment ID for this student.
-      final studentEnrollmentDbId = (await _fetchEnrollmentIdsByStudentIds(
-        dbExecutor: db,
-        studentIds: [localStudentId],
-        additionalWhere: 'isDeleted = ?',
-        additionalArgs: [0],
-      )).first;
+      // Trial/applicant users have no active halqa enrollment — return early with
+      // an empty map so callers can handle the demo-mode case gracefully.
+      final List<int> enrollmentIds;
+      try {
+        enrollmentIds = await _fetchEnrollmentIdsByStudentIds(
+          dbExecutor: db,
+          studentIds: [localStudentId],
+          additionalWhere: 'isDeleted = ?',
+          additionalArgs: [0],
+        );
+      } on CacheException {
+        // No active enrollment (trial / applicant user) — no tracking to create.
+        return {};
+      }
+
+      if (enrollmentIds.isEmpty) return {};
+      final studentEnrollmentDbId = enrollmentIds.first;
 
       final trackingRecord = await _findOrCreateParentDraftTracking(
         db,

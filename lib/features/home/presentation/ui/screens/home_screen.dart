@@ -15,9 +15,11 @@ import '../../../../auth/presentation/ui/widgets/log_out_dialog.dart';
 import '../../../../daily_tracking/presentation/bloc/quran_reader_bloc.dart';
 import '../../../../daily_tracking/presentation/bloc/tracking_session_bloc.dart';
 import '../../../../daily_tracking/presentation/pages/quran_reader_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../settings/presentation/screens/settings_screen.dart';
 import '../../../domain/entities/plan_for_the_day_entity.dart';
 import '../../bloc/student_bloc.dart';
+import 'student_profile_screen.dart';
 
 // import '../../../../../core/constants/app_colors.dart';
 
@@ -227,7 +229,7 @@ class _DashboardState extends State<Dashboard> {
                             ? Center(
                                 child: Text(
                                   state.planForTheDayFailure?.message ??
-                                      'حدث خطأ',
+                                  'حدث خطأ',
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               )
@@ -271,7 +273,11 @@ class _DashboardState extends State<Dashboard> {
                                               ),
                                         ),
                                         const SizedBox(height: 16),
-                                        state.planForTheDay != null
+                                        state.planForTheDay != null &&
+                                                state
+                                                    .planForTheDay!
+                                                    .section
+                                                    .isNotEmpty
                                             ? Column(
                                                 children: state
                                                     .planForTheDay!
@@ -284,14 +290,7 @@ class _DashboardState extends State<Dashboard> {
                                                     )
                                                     .toList(),
                                               )
-                                            : Center(
-                                                child: Text(
-                                                  'لا توجد مهام لهذا اليوم',
-                                                  style: Theme.of(
-                                                    context,
-                                                  ).textTheme.bodyMedium,
-                                                ),
-                                              ),
+                                            : _buildSetPlanCta(),
                                       ],
                                     ),
                                   ),
@@ -305,6 +304,72 @@ class _DashboardState extends State<Dashboard> {
               },
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Shown when the student has a plan but no tracking sections have been
+  /// calculated yet (e.g. trial / applicant mode with default plan).
+  Widget _buildSetPlanCta() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => BlocProvider.value(
+              value: context.read<StudentBloc>(),
+              child: const StudentProfileScreen(),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.accent12,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.accent38),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.accent38,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.menu_book_rounded,
+                color: AppColors.accent,
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'ابدأ بضبط خطة حفظك',
+                    style: GoogleFonts.cairo(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'اضغط هنا لتخصيص خطة المراجعة والحفظ اليومية',
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      color: Colors.white60,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_back_ios, color: Colors.white38, size: 16),
+          ],
         ),
       ),
     );

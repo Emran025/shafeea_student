@@ -237,6 +237,10 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
   /// IMPORTANT: This function guarantees that the returned list of IDs will be
   /// in the *exact same order* as the input list of UUIDs.
   /// It throws an exception if any UUID is not found.
+  ///
+  /// NOTE: This intentionally does NOT filter by isDeleted so that trial /
+  /// applicant users — whose placeholder halqa_students row is stored with
+  /// isDeleted=1 — can still resolve their enrollment ID for plan lookups.
   Future<List<int>> _fetchEnrollmentIdbyStudentUuids({
     required DatabaseExecutor dbExecutor,
     required List<String> uuids,
@@ -253,8 +257,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     return await _fetchEnrollmentIdsByStudentIds(
       dbExecutor: dbExecutor,
       studentIds: uuidToStudentIdMap,
-      additionalWhere: 'isDeleted = ?',
-      additionalArgs: [0],
+      // No isDeleted filter — include the trial user's placeholder enrollment.
     );
   }
 
@@ -409,8 +412,10 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
         // Use server IDs directly as they now match our local IDs
         final serverUserId = int.tryParse(tenantId) ?? 0;
 
-        // Resolve enrollment ID from the database using serverUserId
-        // (Even if they are the same, we need to make sure the record exists)
+        // Resolve enrollment ID from the database using serverUserId.
+        // NOTE: We intentionally do NOT filter by isDeleted here so that trial /
+        // applicant users — whose default enrollment is stored with isDeleted=1
+        // (because they have no real halqa yet) — can still persist a local plan.
         final enrollmentIdMaps = await txn.query(
           _kHalqaStudentsTable,
           columns: ['id'],
