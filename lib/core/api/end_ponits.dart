@@ -31,6 +31,10 @@ class EndPoint {
   /// No authentication required. Query param: `name`.
   static const String usernameSuggest = "$v1/auth/username/suggest";
 
+  /// Public endpoint: returns the list of available schools.
+  /// No authentication required. Optional query params: search, country, city.
+  static const String schools = "$v1/schools";
+
   static const String privacyPolicy = "$v1/help/privacy-policy";
   static const String faqs = "$v1/help/faqs";
   static const String tickets = "$v1/help/tickets";
