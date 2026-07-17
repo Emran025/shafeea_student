@@ -117,13 +117,13 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
     final List<int> orderedIds = [];
     for (final uuid in studentIds) {
       final id = uuidToStudentIdMap[uuid];
-      if (id == null) {
-        throw CacheException(
-          message:
-              'Could not find a matching database ID for enrollmentIds studentId: $uuid',
-        );
+      // If no enrollment row exists for this student yet (e.g. the student
+      // hasn't been assigned to a halqa), skip them gracefully so callers
+      // that already handle an empty list (like getOrCreateTodayDraftTrackingDetails)
+      // can show the appropriate UI prompt instead of crashing.
+      if (id != null) {
+        orderedIds.add(id);
       }
-      orderedIds.add(id);
     }
     return orderedIds;
   }
@@ -166,20 +166,15 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
       );
 
       // 2. Fetch the enrollment ID for this student.
-      // Trial/applicant users have no active halqa enrollment — return early with
-      // an empty map so callers can handle the demo-mode case gracefully.
-      final List<int> enrollmentIds;
-      try {
-        enrollmentIds = await _fetchEnrollmentIdsByStudentIds(
-          dbExecutor: db,
-          studentIds: [localStudentId],
-          additionalWhere: 'isDeleted = ?',
-          additionalArgs: [0],
-        );
-      } on CacheException {
-        // No active enrollment (trial / applicant user) — no tracking to create.
-        return {};
-      }
+      // Only active (isDeleted=0) enrollments qualify — applicants without a
+      // saved plan yet will get an empty map, which the repository converts
+      // into a no-plan success state so the UI shows the create-plan CTA.
+      final enrollmentIds = await _fetchEnrollmentIdsByStudentIds(
+        dbExecutor: db,
+        studentIds: [localStudentId],
+        additionalWhere: 'isDeleted = ?',
+        additionalArgs: [0],
+      );
 
       if (enrollmentIds.isEmpty) return {};
       final studentEnrollmentDbId = enrollmentIds.first;

@@ -93,12 +93,19 @@ final class StudentRepositoryImpl implements StudentRepository {
     try {
       final nextTracking = await _trackingLocalDataSource
           .getOrCreateTodayDraftTrackingDetails();
-      final followUpPlan = await _localDataSource.getFollowUpPlan();
-      final trackings = await _localDataSource.getFollowUpTrackings();
 
-      if (followUpPlan.details.isEmpty) {
-        return Left(CacheFailure(message: 'You have no plan details.'));
+      // If no plan has been saved yet (new applicant who hasn't used the CTA),
+      // return an empty success so the UI shows the create-plan prompt.
+      FollowUpPlanModel followUpPlan;
+      try {
+        followUpPlan = await _localDataSource.getFollowUpPlan();
+      } on CacheException {
+        return Right(
+          PlanForTheDayEntity(section: const [], endDate: DateTime.now()),
+        );
       }
+
+      final trackings = await _localDataSource.getFollowUpTrackings();
 
       final DateTime lastTrackingDate = (trackings.isNotEmpty)
           ? DateTime.parse(trackings.last.createdAt)
@@ -407,6 +414,10 @@ final class StudentRepositoryImpl implements StudentRepository {
   @override
   Future<Either<Failure, FollowUpPlanEntity>> saveLocalPlan(FollowUpPlanEntity plan) async {
     try {
+      // Ensure an active enrollment row exists before saving the plan.
+      // Applicants who are not yet registered as students need this
+      // placeholder so upsertFollowUpPlans can resolve the enrollment FK.
+      await _localDataSource.ensureLocalEnrollmentExists();
       final model = FollowUpPlanModel.fromEntity(plan);
       await _localDataSource.saveLocalPlan(model);
       return Right(plan);

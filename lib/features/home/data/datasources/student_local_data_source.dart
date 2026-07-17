@@ -47,6 +47,11 @@ abstract interface class StudentLocalDataSource {
   Future<void> upsertStudentInfo(StudentInfoModel student);
   Future<void> saveLocalPlan(FollowUpPlanModel plan);
 
+  /// Ensures an active (isDeleted=0) halqa_students record exists for the
+  /// current user. Call this before persisting a plan for the first time so
+  /// that applicants who have not yet been enrolled can still save a local plan.
+  Future<void> ensureLocalEnrollmentExists();
+
   /// Performs a "soft delete" on a student record in the local database.
   ///
   /// Instead of physically removing the record, this method should mark the

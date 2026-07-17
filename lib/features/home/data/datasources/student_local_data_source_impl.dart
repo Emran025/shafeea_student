@@ -412,10 +412,9 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
         // Use server IDs directly as they now match our local IDs
         final serverUserId = int.tryParse(tenantId) ?? 0;
 
-        // Resolve enrollment ID from the database using serverUserId.
-        // NOTE: We intentionally do NOT filter by isDeleted here so that trial /
-        // applicant users — whose default enrollment is stored with isDeleted=1
-        // (because they have no real halqa yet) — can still persist a local plan.
+        // Resolve the active enrollment for this user.
+        // Only isDeleted=0 rows are considered; ensureLocalEnrollmentExists()
+        // must be called before saving a plan for the first time.
         final enrollmentIdMaps = await txn.query(
           _kHalqaStudentsTable,
           columns: ['id'],
@@ -743,16 +742,14 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
 
           await upsertStudent(virtualStudent);
 
-          final assignedHalaqa = const AssignedHalaqasModel.defaultAssigned();
-          await upsertHalqaStudent(assignedHalaqa, virtualStudent.id);
-
-          final followUpPlan = FollowUpPlanModel.defaultPlan();
-          await upsertFollowUpPlans(followUpPlan);
-
+          // Halaqa enrollment and plan are NOT seeded here.
+          // The user creates their plan explicitly via the home-screen CTA,
+          // at which point ensureLocalEnrollmentExists() is called first so
+          // the plan can be persisted cleanly.
           return StudentInfoModel(
             studentModel: virtualStudent,
-            assignedHalaqa: assignedHalaqa,
-            followUpPlan: followUpPlan,
+            assignedHalaqa: const AssignedHalaqasModel.defaultAssigned(),
+            followUpPlan: FollowUpPlanModel.defaultPlan(),
           );
         }
       } catch (innerError) {
@@ -760,6 +757,47 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
       }
       throw CacheException(
         message: 'Failed to fetch student by ID : ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<void> ensureLocalEnrollmentExists() async {
+    final user = await _authLocalDataSource.getUser();
+    final tenantId = "${user!.id}";
+    final serverUserId = int.tryParse(tenantId) ?? 0;
+
+    // If an active enrollment already exists, nothing to do.
+    final existing = await _db.query(
+      _kHalqaStudentsTable,
+      columns: ['id'],
+      where: 'studentId = ? AND isDeleted = ? AND tenant_id = ?',
+      whereArgs: [serverUserId, 0, tenantId],
+      limit: 1,
+    );
+    if (existing.isNotEmpty) return;
+
+    // Create a local placeholder enrollment with isDeleted=0.
+    // This lets the plan and draft-tracking machinery work for applicants
+    // who have not yet been assigned to a real halqa on the server.
+    // uuid is prefixed with 'local_' so the sync service can skip it.
+    try {
+      await _db.insert(
+        _kHalqaStudentsTable,
+        {
+          'uuid': 'local_$tenantId',
+          'halqaId': 0,
+          'studentId': serverUserId,
+          'isDeleted': 0,
+          'tenant_id': tenantId,
+          'assignedAt': DateTime.now().toIso8601String(),
+          'lastModified': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    } on DatabaseException catch (e) {
+      throw CacheException(
+        message: 'Failed to create local enrollment placeholder: ${e.toString()}',
       );
     }
   }

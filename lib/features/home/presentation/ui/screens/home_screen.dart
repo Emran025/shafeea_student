@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shafeea/shared/themes/app_theme.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:shafeea/shared/widgets/avatar.dart';
 
@@ -11,15 +12,20 @@ import '../../../../../config/di/injection.dart';
 import '../../../../../shared/widgets/recitation_mode_sidebar.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../../../core/models/active_status.dart';
+import '../../../../../core/models/report_frequency.dart';
+import '../../../../../core/models/tracking_type.dart';
+import '../../../../../core/models/tracking_units.dart';
 import '../../../../auth/presentation/ui/widgets/log_out_dialog.dart';
 import '../../../../daily_tracking/presentation/bloc/quran_reader_bloc.dart';
 import '../../../../daily_tracking/presentation/bloc/tracking_session_bloc.dart';
 import '../../../../daily_tracking/presentation/pages/quran_reader_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../settings/presentation/screens/settings_screen.dart';
+import '../../../domain/entities/follow_up_plan_entity.dart';
+import '../../../domain/entities/plan_detail_entity.dart';
 import '../../../domain/entities/plan_for_the_day_entity.dart';
 import '../../bloc/student_bloc.dart';
-import 'student_profile_screen.dart';
+import 'add_student_plan.dart';
 
 // import '../../../../../core/constants/app_colors.dart';
 
@@ -226,13 +232,7 @@ class _DashboardState extends State<Dashboard> {
                               )
                             : state.planForTheDayStatus ==
                                   PlanForTheDayStatus.failure
-                            ? Center(
-                                child: Text(
-                                  state.planForTheDayFailure?.message ??
-                                  'حدث خطأ',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              )
+                            ? _buildNoHalaqaCta()
                             : state.planForTheDayStatus ==
                                   PlanForTheDayStatus.success
                             ? ListView(
@@ -261,16 +261,34 @@ class _DashboardState extends State<Dashboard> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          'مــهــام الــيــوم',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .headlineMedium!
-                                              .copyWith(
-                                                fontSize: 20,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              'مــهــام الــيــوم',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .headlineMedium!
+                                                  .copyWith(
+                                                    fontSize: 20,
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                            ),
+                                            IconButton(
+                                              tooltip: 'ضبط الخطة',
+                                              onPressed: () => _showPlanDialog(
+                                                state
+                                                    .selectedStudent
+                                                    ?.followUpPlan,
                                               ),
+                                              icon: const Icon(
+                                                Icons.edit_calendar_outlined,
+                                                color: AppColors.accent,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         const SizedBox(height: 16),
                                         state.planForTheDay != null &&
@@ -309,20 +327,113 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  /// Shown when the student has a plan but no tracking sections have been
-  /// calculated yet (e.g. trial / applicant mode with default plan).
-  Widget _buildSetPlanCta() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => BlocProvider.value(
-              value: context.read<StudentBloc>(),
-              child: const StudentProfileScreen(),
+  /// Shown when the student has no halqa enrollment yet.
+  /// Shown when there is no active halqa enrollment — lets the student
+  /// set up a local plan while their account is being reviewed.
+  Widget _buildNoHalaqaCta() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.orange.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.orange.withOpacity(0.35)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.info_outline,
+                  color: Colors.orange,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'حسابك قيد المراجعة. يمكنك في هذه الأثناء ضبط خطة الحفظ الخاصة بك.',
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    color: Colors.white70,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: () => _showPlanDialog(null),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.accent12,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.accent38),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent38,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.menu_book_rounded,
+                    color: AppColors.accent,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ابدأ بضبط خطة حفظك',
+                        style: GoogleFonts.cairo(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'اضغط هنا لإنشاء خطة المراجعة والحفظ اليومية',
+                        style: GoogleFonts.cairo(
+                          fontSize: 12,
+                          color: Colors.white60,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.white38,
+                  size: 16,
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ],
+    );
+  }
+
+  /// Shown when the student has no plan yet — tapping opens the plan form dialog.
+  Widget _buildSetPlanCta() {
+    return GestureDetector(
+      onTap: () => _showPlanDialog(null),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -371,6 +482,166 @@ class _DashboardState extends State<Dashboard> {
             const Icon(Icons.arrow_back_ios, color: Colors.white38, size: 16),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showPlanDialog(FollowUpPlanEntity? currentPlan) {
+    final planForm = StudentsPlanForm(initialPlan: currentPlan);
+    final bloc = context.read<StudentBloc>();
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (ctx, setStateDialog) {
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              backgroundColor: Colors.black45,
+              insetPadding: const EdgeInsets.all(10),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent12,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.accent70, width: 0.7),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.edit_calendar_outlined,
+                              color: AppColors.lightCream,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "ضبط خطة المتابعة",
+                              style: GoogleFonts.cairo(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.lightCream,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Divider(height: 2, color: AppColors.accent70),
+                        const SizedBox(height: 16),
+                        planForm,
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.pop(dialogContext),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: AppColors.accent70),
+                                ),
+                                child: Text(
+                                  "إلغاء",
+                                  style: GoogleFonts.cairo(
+                                    color: AppColors.lightCream,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.accent,
+                                ),
+                                onPressed: () {
+                                  if (planForm.formKey.currentState
+                                          ?.validate() ??
+                                      false) {
+                                    planForm.formKey.currentState?.save();
+
+                                    final freq = Frequency.values.firstWhere(
+                                      (f) =>
+                                          f.labelAr ==
+                                          planForm.studyPlanType.text,
+                                      orElse: () => Frequency.daily,
+                                    );
+
+                                    final details = TrackingType.values.map((
+                                      type,
+                                    ) {
+                                      final unitText =
+                                          planForm
+                                              .unitTypeControllers[type]
+                                              ?.text ??
+                                          'صفحة';
+                                      final qtyText =
+                                          planForm
+                                              .quantityControllers[type]
+                                              ?.text ??
+                                          '0';
+                                      final qty = int.tryParse(qtyText) ?? 0;
+                                      final unit = TrackingUnitTyps.values
+                                          .firstWhere(
+                                            (u) => u.labelAr == unitText,
+                                            orElse: () => TrackingUnitTyps.page,
+                                          );
+                                      return PlanDetailEntity(
+                                        type: type,
+                                        unit: unit,
+                                        amount: qty,
+                                      );
+                                    }).toList();
+
+                                    final existingId =
+                                        currentPlan?.planId ?? '';
+                                    final updatedPlan = FollowUpPlanEntity(
+                                      planId:
+                                          existingId.isEmpty ||
+                                              existingId == '0'
+                                          ? const Uuid().v4()
+                                          : existingId,
+                                      serverPlanId:
+                                          existingId.isEmpty ||
+                                              existingId == '0'
+                                          ? '0'
+                                          : existingId,
+                                      frequency: freq,
+                                      details: details,
+                                      createdAt: DateTime.now()
+                                          .toIso8601String(),
+                                      updatedAt: DateTime.now()
+                                          .toIso8601String(),
+                                    );
+
+                                    bloc.add(
+                                      SaveStudentPlanRequested(updatedPlan),
+                                    );
+                                    Navigator.pop(dialogContext);
+                                  }
+                                },
+                                child: Text(
+                                  "حفظ",
+                                  style: GoogleFonts.cairo(
+                                    color: AppColors.lightCream,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
