@@ -6,6 +6,7 @@ import 'package:shafeea/features/home/data/models/student_model.dart';
 import '../models/student_info_model.dart';
 import '../models/tracking_model.dart';
 import '../models/applicant_status_model.dart';
+import '../models/follow_up_plan_model.dart';
 import 'student_remote_data_source.dart';
 
 /// The concrete implementation of [StudentRemoteDataSource].
@@ -29,7 +30,6 @@ final class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
     // The studentData is expected to be a UUID or similar identifier.
     final responseJson = await _apiConsumer.get(
       EndPoint.userProfile.replaceAll('{id}', studentId.toString()),
-      // Example: '/students/some-uuid'
     );
 
     // Validate the response format.
@@ -158,5 +158,33 @@ final class StudentRemoteDataSourceImpl implements StudentRemoteDataSource {
       'movedToStudentsTable': data['movedToStudentsTable'] ?? false,
       'rejection': rejectionJson,
     });
+  }
+
+  @override
+  Future<FollowUpPlanModel> createPlan({
+    required String studentId,
+    required FollowUpPlanModel plan,
+    required String halaqahId,
+  }) async {
+    final String path = EndPoint.createPlan.replaceAll('{id}', studentId);
+    final Map<String, dynamic> body = plan.toJsonForApi(halaqahId);
+
+    final responseJson = await _apiConsumer.post(
+      path,
+      data: body,
+    );
+
+    if (responseJson is! Map<String, dynamic>) {
+      throw const FormatException(
+        'Invalid createPlan response: Expected object map.',
+      );
+    }
+
+    final planData = responseJson['data'] as Map<String, dynamic>?;
+    if (planData == null) {
+      throw const FormatException('Missing plan data in response.');
+    }
+
+    return FollowUpPlanModel.fromJson(planData);
   }
 }

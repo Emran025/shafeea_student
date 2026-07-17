@@ -45,6 +45,7 @@ abstract interface class StudentLocalDataSource {
   );
   Future<void> upsertFollowUpPlans(FollowUpPlanModel student);
   Future<void> upsertStudentInfo(StudentInfoModel student);
+  Future<void> saveLocalPlan(FollowUpPlanModel plan);
 
   /// Performs a "soft delete" on a student record in the local database.
   ///

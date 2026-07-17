@@ -23,18 +23,21 @@ void main() {
   late MockUpsertStudent mockUpsertStudent;
   late MockDeleteStudentUseCase mockDeleteStudentUseCase;
   late MockGetPlanForTheDay mockGetPlanForTheDay;
+  late MockSaveStudentPlan mockSaveStudentPlan;
 
   setUp(() {
     mockGetStudentById = MockGetStudentById();
     mockUpsertStudent = MockUpsertStudent();
     mockDeleteStudentUseCase = MockDeleteStudentUseCase();
     mockGetPlanForTheDay = MockGetPlanForTheDay();
+    mockSaveStudentPlan = MockSaveStudentPlan();
 
     studentBloc = StudentBloc(
       getStudentInfo: mockGetStudentById,
       upsertStudent: mockUpsertStudent,
       deleteStudent: mockDeleteStudentUseCase,
       getPlanForTheDay: mockGetPlanForTheDay,
+      saveStudentPlan: mockSaveStudentPlan,
     );
   });
 

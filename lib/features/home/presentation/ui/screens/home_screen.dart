@@ -10,6 +10,7 @@ import 'package:shafeea/shared/widgets/avatar.dart';
 import '../../../../../config/di/injection.dart';
 import '../../../../../shared/widgets/recitation_mode_sidebar.dart';
 import '../../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../../../core/models/active_status.dart';
 import '../../../../auth/presentation/ui/widgets/log_out_dialog.dart';
 import '../../../../daily_tracking/presentation/bloc/quran_reader_bloc.dart';
 import '../../../../daily_tracking/presentation/bloc/tracking_session_bloc.dart';
@@ -31,6 +32,7 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
+    context.read<StudentBloc>().add(const StudentDetailsFetched());
     context.read<StudentBloc>().add(const PlanForTheDayRequested());
   }
 
@@ -113,157 +115,194 @@ class _DashboardState extends State<Dashboard> {
         body: Directionality(
           textDirection: TextDirection.rtl,
           child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12,
-              ),
-              child: Column(
-                children: [
-                  // Latest Alerts - Frosted Glass Effect
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.mediumDark87,
-                            AppColors.mediumDark70,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'آخر التنبيهات',
-                            style: Theme.of(context).textTheme.titleLarge!
-                                .copyWith(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'لا توجد تنبيهات جديدة في الوقت الحالي.',
-                            style: Theme.of(context).textTheme.bodyMedium!
-                                .copyWith(
-                                  color: Colors.white70,
-                                  height: 1.5, // لزيادة أناقة النص
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
+            child: BlocBuilder<StudentBloc, StudentState>(
+              builder: (context, state) {
+                final student = state.selectedStudent?.studentDetailEntity;
+                final isDemoMode =
+                    student == null || student.status != ActiveStatus.active;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12,
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Plan for the Day Card - Modern Style
-                  Expanded(
-                    child: BlocBuilder<StudentBloc, StudentState>(
-                      builder: (context, state) {
-                        if (state.planForTheDayStatus ==
-                            PlanForTheDayStatus.loading) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.accent,
+                  child: Column(
+                    children: [
+                      if (isDemoMode)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.amber.withOpacity(0.4),
                             ),
-                          );
-                        } else if (state.planForTheDayStatus ==
-                            PlanForTheDayStatus.failure) {
-                          return Center(
-                            child: Text(
-                              state.planForTheDayFailure?.message ?? 'حدث خطأ',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          );
-                        } else if (state.planForTheDayStatus ==
-                            PlanForTheDayStatus.success) {
-                          return ListView(
+                          ),
+                          child: Row(
                             children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppColors.mediumDark87,
-                                      AppColors.mediumDark70,
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
+                              const Icon(
+                                Icons.info_outline,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'الوضع التجريبي: حسابك قيد المراجعة والقبول من الإدارة. يمكنك ضبط خطتك وقراءة وردك محلياً.',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontSize: 13,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  borderRadius: BorderRadius.circular(24),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 12,
-                                      offset: Offset(0, 6),
-                                    ),
-                                  ],
-                                ),
-                                padding: const EdgeInsets.all(24),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'مــهــام الــيــوم',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headlineMedium!
-                                          .copyWith(
-                                            fontSize: 20,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    state.planForTheDay != null
-                                        ? Column(
-                                            children: state
-                                                .planForTheDay!
-                                                .section
-                                                .map(
-                                                  (section) =>
-                                                      _buildModernTaskCard(
-                                                        section,
-                                                      ),
-                                                )
-                                                .toList(),
-                                          )
-                                        : Center(
-                                            child: Text(
-                                              'لا توجد مهام لهذا اليوم',
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.bodyMedium,
-                                            ),
-                                          ),
-                                  ],
                                 ),
                               ),
                             ],
-                          );
-                        } else {
-                          return const SizedBox.shrink();
-                        }
-                      },
-                    ),
+                          ),
+                        ),
+                      // Latest Alerts - Frosted Glass Effect
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.mediumDark87,
+                                AppColors.mediumDark70,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'آخر التنبيهات',
+                                style: Theme.of(context).textTheme.titleLarge!
+                                    .copyWith(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'لا توجد تنبيهات جديدة في الوقت الحالي.',
+                                style: Theme.of(context).textTheme.bodyMedium!
+                                    .copyWith(
+                                      color: Colors.white70,
+                                      height: 1.5,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Plan for the Day Card - Modern Style
+                      Expanded(
+                        child:
+                            state.planForTheDayStatus ==
+                                PlanForTheDayStatus.loading
+                            ? const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.accent,
+                                ),
+                              )
+                            : state.planForTheDayStatus ==
+                                  PlanForTheDayStatus.failure
+                            ? Center(
+                                child: Text(
+                                  state.planForTheDayFailure?.message ??
+                                      'حدث خطأ',
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                ),
+                              )
+                            : state.planForTheDayStatus ==
+                                  PlanForTheDayStatus.success
+                            ? ListView(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppColors.mediumDark87,
+                                          AppColors.mediumDark70,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(24),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 12,
+                                          offset: Offset(0, 6),
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.all(24),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'مــهــام الــيــوم',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .headlineMedium!
+                                              .copyWith(
+                                                fontSize: 20,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        state.planForTheDay != null
+                                            ? Column(
+                                                children: state
+                                                    .planForTheDay!
+                                                    .section
+                                                    .map(
+                                                      (section) =>
+                                                          _buildModernTaskCard(
+                                                            section,
+                                                          ),
+                                                    )
+                                                    .toList(),
+                                              )
+                                            : Center(
+                                                child: Text(
+                                                  'لا توجد مهام لهذا اليوم',
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium,
+                                                ),
+                                              ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),

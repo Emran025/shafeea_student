@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
 import '../datasources/student_local_data_source.dart';
 import '../datasources/student_remote_data_source.dart';
+import '../models/follow_up_plan_model.dart';
 import 'student_sync_service.dart';
 
 /// A professional-grade service for orchestrating two-way, delta-based data synchronization.
@@ -72,8 +73,31 @@ final class StudentSyncServiceImpl implements StudentSyncService {
         return;
       }
 
+      FollowUpPlanModel? localPlan;
+      try {
+        localPlan = await _localDataSource.getFollowUpPlan();
+      } catch (_) {}
+
       final userProfile = await _remoteDataSource.getStudent(tenantId);
       await _localDataSource.upsertStudentInfo(userProfile);
+
+      // Upload local plan if the student is assigned to a Halaqah, and the local plan has not been synced yet (serverPlanId == '0')
+      if (localPlan != null &&
+          localPlan.serverPlanId == '0' &&
+          userProfile.assignedHalaqa.halaqaId != '0') {
+        print('[SyncService] Detected un-synced local plan. Uploading to server to overwrite default plan...');
+        try {
+          final serverPlan = await _remoteDataSource.createPlan(
+            studentId: tenantId,
+            plan: localPlan,
+            halaqahId: userProfile.assignedHalaqa.halaqaId,
+          );
+          await _localDataSource.upsertFollowUpPlans(serverPlan);
+          print('[SyncService] Local plan uploaded successfully. Server Plan ID: ${serverPlan.planId}');
+        } catch (e) {
+          print('[SyncService] Failed to upload local plan: $e');
+        }
+      }
 
       // The core logic is now wrapped in a safe, intelligent check.
 

@@ -5,21 +5,15 @@ import 'package:shafeea/core/models/report_frequency.dart';
 import 'package:shafeea/core/models/tracking_type.dart';
 import 'package:shafeea/core/models/tracking_units.dart';
 import 'package:shafeea/shared/widgets/custom_text_field.dart';
+import '../../../domain/entities/follow_up_plan_entity.dart';
 
 class StudentsPlanForm extends StatefulWidget {
   final formKey = GlobalKey<FormState>();
+  final FollowUpPlanEntity? initialPlan;
 
-  StudentsPlanForm({super.key});
+  final TextEditingController studyPlanType = TextEditingController(text: "يوميًا");
 
-  @override
-  State<StudentsPlanForm> createState() => _StudentsPlanFormState();
-}
-
-class _StudentsPlanFormState extends State<StudentsPlanForm> {
-  // Controllers
-  TextEditingController studyPlanType = TextEditingController(text: "يوميًا");
-
-  Map<TrackingType, TextEditingController> unitTypeControllers = {
+  final Map<TrackingType, TextEditingController> unitTypeControllers = {
     TrackingType.memorization: TextEditingController(text: "صفحة"),
     TrackingType.review: TextEditingController(text: "صفحة"),
     TrackingType.recitation: TextEditingController(text: "صفحة"),
@@ -30,6 +24,21 @@ class _StudentsPlanFormState extends State<StudentsPlanForm> {
     TrackingType.recitation: TextEditingController(),
   };
 
+  StudentsPlanForm({this.initialPlan, super.key}) {
+    if (initialPlan != null) {
+      studyPlanType.text = initialPlan!.frequency.labelAr;
+      for (final detail in initialPlan!.details) {
+        unitTypeControllers[detail.type]?.text = detail.unit.labelAr;
+        quantityControllers[detail.type]?.text = detail.amount.toString();
+      }
+    }
+  }
+
+  @override
+  State<StudentsPlanForm> createState() => _StudentsPlanFormState();
+}
+
+class _StudentsPlanFormState extends State<StudentsPlanForm> {
   // Widget داخل الـ build
 
   @override
@@ -49,7 +58,7 @@ class _StudentsPlanFormState extends State<StudentsPlanForm> {
           ),
           const SizedBox(height: 10),
           _buildDropdown(
-            studyPlanType,
+            widget.studyPlanType,
             "نوع خطة المتابعة",
             Frequency.values.map((element) => element.labelAr).toList(),
           ),
@@ -75,7 +84,7 @@ class _StudentsPlanFormState extends State<StudentsPlanForm> {
                   children: [
                     Expanded(
                       child: _buildDropdown(
-                        unitTypeControllers[type]!,
+                        widget.unitTypeControllers[type]!,
                         "وحدة ال${type.labelAr}",
                         TrackingUnitTyps.values
                             .map((element) => element.labelAr)
@@ -85,7 +94,7 @@ class _StudentsPlanFormState extends State<StudentsPlanForm> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: CustomTextField(
-                        controller: quantityControllers[type]!,
+                        controller: widget.quantityControllers[type]!,
                         prefixIcon: Icons.format_list_numbered,
                         label: "العدد",
                         keyboardType: TextInputType.number,

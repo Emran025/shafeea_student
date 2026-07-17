@@ -25,6 +25,7 @@ class EndPoint {
   static const String accountProfile = "$v1/account/profile";
   static const String changePassword = "$v1/account/change-password";
   static const String sessions = "$v1/account/sessions";
+  static const String createPlan = "$v1/students/{id}/plans";
 
   /// Public endpoint: returns a sanitized username candidate from a name.
   /// No authentication required. Query param: `name`.

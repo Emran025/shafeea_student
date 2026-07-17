@@ -10,6 +10,7 @@ import 'package:shafeea/features/auth/domain/usecases/auth_suggest_username_usec
 import 'package:shafeea/features/auth/domain/usecases/auth_check_username_usecase.dart';
 import 'package:shafeea/features/auth/domain/usecases/resend_verification_usecase.dart';
 import 'package:shafeea/features/daily_tracking/domain/usecases/save_draft_mistakes_use_case.dart';
+import 'package:shafeea/features/home/domain/usecases/save_student_plan.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:shafeea/core/database/app_database.dart';
 import 'package:shafeea/features/auth/data/datasources/auth_local_data_source.dart';
@@ -139,6 +140,7 @@ class MockStudentLocalDataSource extends Mock
 class MockDeleteStudentUseCase extends Mock implements DeleteStudentUseCase {}
 
 class MockGetPlanForTheDay extends Mock implements GetPlanForTheDay {}
+class MockSaveStudentPlan extends Mock implements SaveStudentPlan {}
 
 class MockGetStudentById extends Mock implements GetStudentById {}
 

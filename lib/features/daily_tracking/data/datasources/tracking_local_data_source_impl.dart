@@ -103,6 +103,7 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
     String? additionalWhere,
     List<Object?>? additionalArgs,
   }) async {
+    print("$studentIds");
     final Map<int, int> uuidToStudentIdMap = await _fetchMappedIds<int, int>(
       dbExecutor: dbExecutor,
       tableName: _kHalqaStudentsTable,
@@ -112,6 +113,7 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
       additionalWhere: additionalWhere,
       additionalArgs: additionalArgs,
     );
+    print("$uuidToStudentIdMap");
     final List<int> orderedIds = [];
     for (final uuid in studentIds) {
       final id = uuidToStudentIdMap[uuid];
@@ -284,7 +286,9 @@ final class TrackingLocalDataSourceImpl implements TrackingLocalDataSource {
 
           // 2. Prepare the map
           // Use the trackingDetailId from the mistake model itself.
-          final mistakeMap = mistake.toMap(int.tryParse(mistake.trackingDetailId));
+          final mistakeMap = mistake.toMap(
+            int.tryParse(mistake.trackingDetailId),
+          );
           mistakeMap['tenant_id'] = tenantId;
 
           // 3. Add Insert operation to batch — replace on UUID conflict

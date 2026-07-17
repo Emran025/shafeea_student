@@ -4,6 +4,7 @@ import '../../../../core/error/failures.dart';
 import '../../../settings/domain/entities/export_config.dart';
 import '../../../settings/domain/entities/import_config.dart';
 import '../../../settings/domain/entities/import_summary.dart';
+import '../entities/follow_up_plan_entity.dart';
 import '../entities/plan_for_the_day_entity.dart';
 import '../entities/student_entity.dart';
 import '../entities/student_info_entity.dart';
@@ -43,4 +44,5 @@ abstract interface class StudentRepository {
   Future<Either<Failure, ImportSummary>> importFollowUpReports({
     required ImportConfig config,
   });
+  Future<Either<Failure, FollowUpPlanEntity>> saveLocalPlan(FollowUpPlanEntity plan);
 }

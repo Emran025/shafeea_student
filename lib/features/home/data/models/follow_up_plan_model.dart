@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'plan_detail_model.dart';
 import '../../domain/entities/follow_up_plan_entity.dart';
 import 'package:uuid/uuid.dart';
-
+import '../../../../core/models/tracking_type.dart';
 import '../../../../core/models/report_frequency.dart';
 
 @immutable
@@ -112,5 +112,53 @@ final class FollowUpPlanModel {
         PlanDetailModel.defaultDetilRecitation(),
       ],
     );
+  }
+
+  Map<String, dynamic> toJsonForApi(String halaqahId) {
+    int? memorizationUnitId;
+    int? memorizationAmount;
+    bool hasMemorization = false;
+
+    int? reviewUnitId;
+    int? reviewAmount;
+    bool hasReview = false;
+
+    int? sardUnitId;
+    int? sardAmount;
+    bool hasSard = false;
+
+    for (final detail in details) {
+      if (detail.type == TrackingType.memorization) {
+        hasMemorization = true;
+        memorizationUnitId = detail.unit.id;
+        memorizationAmount = detail.amount;
+      } else if (detail.type == TrackingType.review) {
+        hasReview = true;
+        reviewUnitId = detail.unit.id;
+        reviewAmount = detail.amount;
+      } else if (detail.type == TrackingType.recitation) {
+        hasSard = true;
+        sardUnitId = detail.unit.id;
+        sardAmount = detail.amount;
+      }
+    }
+
+    return {
+      'name': 'خطة المتابعة الافتراضية',
+      'description': 'خطة التقدم الشخصية للطالب',
+      'start_date': DateTime.now().toIso8601String().substring(0, 10),
+      'end_date': DateTime.now().add(const Duration(days: 365)).toIso8601String().substring(0, 10),
+      'has_memorization': hasMemorization,
+      'memorization_unit_id': memorizationUnitId,
+      'memorization_amount': memorizationAmount,
+      'has_review': hasReview,
+      'review_unit_id': reviewUnitId,
+      'review_amount': reviewAmount,
+      'has_sard': hasSard,
+      'sard_unit_id': sardUnitId,
+      'sard_amount': sardAmount,
+      'frequency_type_id': frequency.id,
+      'halaqah_id': int.tryParse(halaqahId) ?? 0,
+    };
   }
 }

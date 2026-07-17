@@ -50,3 +50,11 @@ final class StudentDeleted extends StudentEvent {
 final class PlanForTheDayRequested extends StudentEvent {
   const PlanForTheDayRequested();
 }
+
+final class SaveStudentPlanRequested extends StudentEvent {
+  final FollowUpPlanEntity plan;
+  const SaveStudentPlanRequested(this.plan);
+
+  @override
+  List<Object> get props => [plan];
+}

@@ -15,6 +15,12 @@ import '../../../domain/entities/student_entity.dart';
 import '../../bloc/student_bloc.dart';
 import '../widgets/study_plan_card.dart';
 import 'add_student_plan.dart';
+import 'package:uuid/uuid.dart';
+import 'package:shafeea/core/models/report_frequency.dart';
+import 'package:shafeea/core/models/tracking_type.dart';
+import 'package:shafeea/core/models/tracking_units.dart';
+import '../../../domain/entities/follow_up_plan_entity.dart';
+import '../../../domain/entities/plan_detail_entity.dart';
 
 class StudentProfileScreen extends StatefulWidget {
   const StudentProfileScreen({super.key});
@@ -24,17 +30,43 @@ class StudentProfileScreen extends StatefulWidget {
 }
 
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
-  StudentsPlanForm form = StudentsPlanForm(key: UniqueKey());
 
   @override
   void initState() {
-    // student = fakeStudents[int.parse(widget.studentID)];
     super.initState();
   }
 
-  void _submitForms() {
-    if (form.formKey.currentState?.validate() ?? false) {
-      form.formKey.currentState?.save();
+  void _submitForms(StudentsPlanForm planForm, String currentPlanId) {
+    if (planForm.formKey.currentState?.validate() ?? false) {
+      planForm.formKey.currentState?.save();
+
+      final freq = Frequency.values.firstWhere(
+        (f) => f.labelAr == planForm.studyPlanType.text,
+        orElse: () => Frequency.daily,
+      );
+
+      final details = TrackingType.values.map((type) {
+        final unitText = planForm.unitTypeControllers[type]?.text ?? 'صفحة';
+        final qtyText = planForm.quantityControllers[type]?.text ?? '0';
+        final qty = int.tryParse(qtyText) ?? 0;
+        final unit = TrackingUnitTyps.values.firstWhere(
+          (u) => u.labelAr == unitText,
+          orElse: () => TrackingUnitTyps.page,
+        );
+
+        return PlanDetailEntity(type: type, unit: unit, amount: qty);
+      }).toList();
+
+      final updatedPlan = FollowUpPlanEntity(
+        planId: currentPlanId == '0' || currentPlanId.isEmpty ? const Uuid().v4() : currentPlanId,
+        serverPlanId: currentPlanId == '0' || currentPlanId.isEmpty ? '0' : currentPlanId,
+        frequency: freq,
+        details: details,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+      );
+
+      context.read<StudentBloc>().add(SaveStudentPlanRequested(updatedPlan));
       Navigator.pop(context);
     }
   }
@@ -78,6 +110,32 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
         child: ListView(
           padding: EdgeInsets.all(10),
           children: [
+            if (student.status != ActiveStatus.active)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.withOpacity(0.5)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.amber),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'حسابك قيد المراجعة. تم تفعيل الوضع التجريبي لتتمكن من ضبط خطة حفظك وقراءة الورد اليومي.',
+                        style: GoogleFonts.cairo(
+                          fontSize: 12,
+                          color: AppColors.lightCream87,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             _buildHeader(context, student),
             SizedBox(height: 24),
             _buildInfoRow("البريد", student.email),
@@ -186,47 +244,41 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
               ],
             ),
 
-            if (student.status == ActiveStatus.active) ...[
-              titles("حلقة الطالب"),
-              if (halaqa.halaqaId != "0") ...{
-                SizedBox(height: 12),
-                StudyHalaqaCard(
-                  onPress: _showAddStudentPlan,
-                  assignedHalaqasEntity: halaqa,
-                ),
-              },
+            titles("حلقة الطالب"),
+            SizedBox(height: 12),
+            StudyHalaqaCard(
+              onPress: () => _showAddStudentPlan(plan),
+              assignedHalaqasEntity: halaqa,
+            ),
 
-              if (plan.details.isNotEmpty) ...{
-                titles("خطة التقدم"),
-                SizedBox(height: 12),
-                StudyPlanCard(
-                  onPress: _showAddStudentPlan,
-                  planType: plan.frequency.labelAr,
-                  planDetailList: plan.details,
-                ),
-              },
+            titles("خطة التقدم"),
+            SizedBox(height: 12),
+            StudyPlanCard(
+              onPress: () => _showAddStudentPlan(plan),
+              planType: plan.frequency.labelAr,
+              planDetailList: plan.details,
+            ),
 
-              titles("مؤشرات الأداء"),
-              SingleChildScrollView(
-                child: SegmentedButton<String>(
-                  segments: ["التقدم", "الجودة", "الأداء"]
-                      .map(
-                        (item) => ButtonSegment<String>(
-                          value: item,
-                          label: Text(
-                            item,
-                            style: GoogleFonts.cairo(fontSize: 12),
-                          ),
+            titles("مؤشرات الأداء"),
+            SingleChildScrollView(
+              child: SegmentedButton<String>(
+                segments: ["التقدم", "الجودة", "الأداء"]
+                    .map(
+                      (item) => ButtonSegment<String>(
+                        value: item,
+                        label: Text(
+                          item,
+                          style: GoogleFonts.cairo(fontSize: 12),
                         ),
-                      )
-                      .toList(growable: false),
-                  selected: {''},
-                  onSelectionChanged: (newSel) {
-                    setState(() {});
-                  },
-                ),
+                      ),
+                    )
+                    .toList(growable: false),
+                selected: {''},
+                onSelectionChanged: (newSel) {
+                  setState(() {});
+                },
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -261,7 +313,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     );
   }
 
-  void _showAddStudentPlan() {
+  void _showAddStudentPlan(FollowUpPlanEntity plan) {
+    final planForm = StudentsPlanForm(initialPlan: plan);
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(
@@ -308,7 +361,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                         const Divider(height: 2, color: AppColors.accent70),
                         const SizedBox(height: 16),
 
-                        form,
+                        planForm,
 
                         const SizedBox(height: 24),
                         Row(
@@ -334,9 +387,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                                   backgroundColor: AppColors.accent,
                                 ),
                                 onPressed: () {
-                                  setState(() {
-                                    _submitForms();
-                                  });
+                                  _submitForms(planForm, plan.planId);
                                 },
                                 child: Text(
                                   "حفظ",

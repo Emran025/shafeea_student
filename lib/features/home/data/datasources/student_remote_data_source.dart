@@ -1,3 +1,4 @@
+import '../models/follow_up_plan_model.dart';
 import '../models/student_info_model.dart';
 import '../models/student_model.dart';
 import '../models/tracking_model.dart';
@@ -38,4 +39,9 @@ abstract interface class StudentRemoteDataSource {
   Future<void> deleteStudent(String studentId);
   Future<List<TrackingModel>> getFollowUpTrackings(String studentId);
   Future<ApplicantStatusModel> getApplicantStatus();
+  Future<FollowUpPlanModel> createPlan({
+    required String studentId,
+    required FollowUpPlanModel plan,
+    required String halaqahId,
+  });
 }

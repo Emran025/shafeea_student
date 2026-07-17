@@ -15,10 +15,12 @@ import '../../../settings/domain/entities/export_config.dart';
 import '../../../settings/domain/entities/import_config.dart';
 import '../../../settings/domain/entities/import_export.dart';
 import '../../../settings/domain/entities/import_summary.dart';
+import '../../domain/entities/follow_up_plan_entity.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/repositories/student_repository.dart';
 import '../datasources/student_local_data_source.dart';
 import '../datasources/student_remote_data_source.dart';
+import '../models/follow_up_plan_model.dart';
 import '../models/student_model.dart';
 import '../models/tracking_detail_model.dart';
 import '../models/tracking_model.dart';
@@ -400,5 +402,16 @@ final class StudentRepositoryImpl implements StudentRepository {
         failedRows: 0,
       ),
     );
+  }
+
+  @override
+  Future<Either<Failure, FollowUpPlanEntity>> saveLocalPlan(FollowUpPlanEntity plan) async {
+    try {
+      final model = FollowUpPlanModel.fromEntity(plan);
+      await _localDataSource.saveLocalPlan(model);
+      return Right(plan);
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message));
+    }
   }
 }

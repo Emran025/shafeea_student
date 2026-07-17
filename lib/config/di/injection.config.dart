@@ -176,6 +176,8 @@ import 'package:shared_preferences/shared_preferences.dart' as _i460;
 import 'package:sqflite/sqflite.dart' as _i779;
 import 'package:workmanager/workmanager.dart' as _i500;
 
+import '../../features/home/domain/usecases/save_student_plan.dart' as _i635;
+
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
   Future<_i174.GetIt> init({
@@ -475,6 +477,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i564.DeleteStudentUseCase>(),
         gh<_i1070.GetStudentById>(),
         gh<_i314.GetPlanForTheDay>(),
+        gh<_i635.SaveStudentPlan>(),
       ),
     );
     gh.factory<_i708.AuthBloc>(

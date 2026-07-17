@@ -16,6 +16,8 @@ import '../models/student_model.dart';
 import '../models/tracking_detail_model.dart';
 import '../models/tracking_model.dart';
 import 'student_local_data_source.dart';
+import '../../../../core/models/active_status.dart';
+import '../../../../core/models/gender.dart';
 
 /// The name of the table that stores user data, including students.
 
@@ -175,6 +177,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     required DatabaseExecutor dbExecutor,
     required List<String> uuids,
   }) async {
+    print("$uuids");
     final Map<String, int> uuidToStudentIdMap =
         await _fetchMappedIds<String, int>(
           dbExecutor: dbExecutor,
@@ -349,7 +352,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     try {
       final studentMap = student.toMap();
       studentMap['tenant_id'] = tenantId;
-      
+
       // Use the server's ID as our primary key 'id' and canonical 'uuid'
       final serverId = int.tryParse(student.id) ?? 0;
       studentMap['id'] = serverId;
@@ -377,7 +380,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     try {
       final studentMap = student.toMap(user.id);
       studentMap['tenant_id'] = tenantId;
-      
+
       // Use the server's enrollment ID as our local 'id' and 'uuid'
       final enrollmentId = int.tryParse(student.id) ?? 0;
       studentMap['id'] = enrollmentId;
@@ -405,7 +408,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
       await _db.transaction((txn) async {
         // Use server IDs directly as they now match our local IDs
         final serverUserId = int.tryParse(tenantId) ?? 0;
-        
+
         // Resolve enrollment ID from the database using serverUserId
         // (Even if they are the same, we need to make sure the record exists)
         final enrollmentIdMaps = await txn.query(
@@ -416,13 +419,15 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
         );
 
         if (enrollmentIdMaps.isEmpty) {
-           throw CacheException(message: 'Enrollment not found for user $tenantId');
+          throw CacheException(
+            message: 'Enrollment not found for user $tenantId',
+          );
         }
         final studentEnrollmentId = enrollmentIdMaps.first['id'] as int;
 
         final followUpPlanMap = followUpPlan.toPlanDbMap(studentEnrollmentId);
         followUpPlanMap['tenant_id'] = tenantId;
-        
+
         // Set the primary key 'id' to the server's planId
         final serverPlanId = int.tryParse(followUpPlan.planId) ?? 0;
         followUpPlanMap['id'] = serverPlanId;
@@ -448,7 +453,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
         for (final detail in followUpPlan.details) {
           final detailMap = detail.toMap(planUuid: followUpPlan.planId);
           detailMap['tenant_id'] = tenantId;
-          // Note: Detail models might not have IDs yet if new, 
+          // Note: Detail models might not have IDs yet if new,
           // but if they do (from server), they should be used.
           await txn.insert(
             _kPlanDetailsTable,
@@ -687,17 +692,81 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     try {
       final user = await getStudent();
 
-      final assignedHalaqa = await getAssignedHalaqa();
-      final followUpPlan = await getFollowUpPlan();
+      AssignedHalaqasModel assignedHalaqa;
+      try {
+        assignedHalaqa = await getAssignedHalaqa();
+      } catch (_) {
+        assignedHalaqa = const AssignedHalaqasModel.defaultAssigned();
+        await upsertHalqaStudent(assignedHalaqa, user.id);
+      }
+
+      FollowUpPlanModel followUpPlan;
+      try {
+        followUpPlan = await getFollowUpPlan();
+      } catch (_) {
+        followUpPlan = FollowUpPlanModel.defaultPlan();
+        await upsertFollowUpPlans(followUpPlan);
+      }
 
       return StudentInfoModel(
         studentModel: user,
         assignedHalaqa: assignedHalaqa,
         followUpPlan: followUpPlan,
       );
-    } on DatabaseException catch (e) {
+    } catch (e) {
+      // Fallback for new applicants/demo mode: seed virtual student from cached auth user
+      try {
+        final authUser = await _authLocalDataSource.getUser();
+        if (authUser != null) {
+          final virtualStudent = StudentModel(
+            id: authUser.id.toString(),
+            name: authUser.name,
+            gender: Gender.male,
+            birthDate: '',
+            email: authUser.email,
+            phone: authUser.phone,
+            experienceYears: 0,
+            country: '',
+            residence: '',
+            city: '',
+            status: ActiveStatus.inactive, // Inactive/applicant status
+            memorizationLevel: '0',
+            qualification: '',
+            isDeleted: false,
+            username: authUser.name.toLowerCase().replaceAll(' ', ''),
+          );
+
+          await upsertStudent(virtualStudent);
+
+          final assignedHalaqa = const AssignedHalaqasModel.defaultAssigned();
+          await upsertHalqaStudent(assignedHalaqa, virtualStudent.id);
+
+          final followUpPlan = FollowUpPlanModel.defaultPlan();
+          await upsertFollowUpPlans(followUpPlan);
+
+          return StudentInfoModel(
+            studentModel: virtualStudent,
+            assignedHalaqa: assignedHalaqa,
+            followUpPlan: followUpPlan,
+          );
+        }
+      } catch (innerError) {
+        print('[LocalDataSource] Seeding virtual student error: $innerError');
+      }
       throw CacheException(
         message: 'Failed to fetch student by ID : ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<void> saveLocalPlan(FollowUpPlanModel plan) async {
+    try {
+      await upsertFollowUpPlans(plan);
+      _dbChangeNotifier.add(null);
+    } catch (e) {
+      throw CacheException(
+        message: 'Failed to save local plan: ${e.toString()}',
       );
     }
   }
@@ -777,25 +846,35 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
     );
 
     if (enrollmentMaps.isEmpty) {
-       // If no enrollment, we can't save trackings reliably.
-       return;
+      // If no enrollment, we can't save trackings reliably.
+      return;
     }
     final localEnrollmentId = enrollmentMaps.first['id'] as int;
 
     try {
       await _db.transaction((txn) async {
         // Step 1: Cleanly delete old data for this tenant.
-        await txn.delete(_kDailyTrackingTable, where: 'tenant_id = ?', whereArgs: [tenantId]);
-        await txn.delete(_kDailyTrackingDetailTable, where: 'tenant_id = ?', whereArgs: [tenantId]);
+        await txn.delete(
+          _kDailyTrackingTable,
+          where: 'tenant_id = ?',
+          whereArgs: [tenantId],
+        );
+        await txn.delete(
+          _kDailyTrackingDetailTable,
+          where: 'tenant_id = ?',
+          whereArgs: [tenantId],
+        );
 
         // Step 2: Iterate through the new tracking data from the server.
         for (final trackingModel in trackings) {
           // Use the server's enrollmentId if provided, otherwise fallback to local verified ID.
-          final enrollmentId = trackingModel.enrollmentId != 0 ? trackingModel.enrollmentId : localEnrollmentId;
-          
+          final enrollmentId = trackingModel.enrollmentId != 0
+              ? trackingModel.enrollmentId
+              : localEnrollmentId;
+
           final trackingMap = trackingModel.toMap(enrollmentId);
           trackingMap['tenant_id'] = tenantId;
-          
+
           await txn.insert(
             _kDailyTrackingTable,
             trackingMap,
@@ -808,7 +887,7 @@ final class StudentLocalDataSourceImpl implements StudentLocalDataSource {
             for (final detailModel in trackingModel.details) {
               final detailMap = detailModel.toMap(trackingModel.id);
               detailMap['tenant_id'] = tenantId;
-              
+
               await txn.insert(
                 _kDailyTrackingDetailTable,
                 detailMap,

@@ -8,9 +8,11 @@ import '../../../../core/error/failures.dart';
 import '../../domain/entities/plan_for_the_day_entity.dart';
 import '../../domain/entities/student_entity.dart';
 import '../../domain/entities/student_info_entity.dart';
+import '../../domain/entities/follow_up_plan_entity.dart';
 import '../../domain/usecases/delete_student_usecase.dart';
 import '../../domain/usecases/get_plan_for_the_day.dart';
 import '../../domain/usecases/get_student_by_id.dart';
+import '../../domain/usecases/save_student_plan.dart';
 import '../../domain/usecases/upsert_student_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 
@@ -23,16 +25,19 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
   final UpsertStudent _upsertStudentUC;
   final DeleteStudentUseCase _deleteStudentUC;
   final GetPlanForTheDay _getPlanForTheDayUC;
+  final SaveStudentPlan _saveStudentPlan;
 
   StudentBloc({
     required GetStudentById getStudentInfo,
     required UpsertStudent upsertStudent,
     required DeleteStudentUseCase deleteStudent,
     required GetPlanForTheDay getPlanForTheDay,
+    required SaveStudentPlan saveStudentPlan,
   }) : _upsertStudentUC = upsertStudent,
        _deleteStudentUC = deleteStudent,
        _getStudentInfoUC = getStudentInfo,
        _getPlanForTheDayUC = getPlanForTheDay,
+       _saveStudentPlan = saveStudentPlan,
        super(const StudentState()) {
     on<StudentUpserted>(_onUpsert, transformer: droppable());
     on<StudentDeleted>(_onDelete, transformer: droppable());
@@ -40,6 +45,39 @@ class StudentBloc extends Bloc<StudentEvent, StudentState> {
     on<PlanForTheDayRequested>(
       _onPlanForTheDayRequested,
       transformer: droppable(),
+    );
+    on<SaveStudentPlanRequested>(
+      _onSaveStudentPlanRequested,
+      transformer: droppable(),
+    );
+  }
+
+  Future<void> _onSaveStudentPlanRequested(
+    SaveStudentPlanRequested event,
+    Emitter<StudentState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        submissionStatus: StudentSubmissionStatus.submitting,
+        clearSubmissionFailure: true,
+      ),
+    );
+
+    final result = await _saveStudentPlan(event.plan);
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          submissionStatus: StudentSubmissionStatus.failure,
+          submissionFailure: failure,
+        ),
+      ),
+      (_) {
+        emit(state.copyWith(submissionStatus: StudentSubmissionStatus.success));
+        // Refresh details and plan for the day to reflect new plan immediately
+        add(const StudentDetailsFetched());
+        add(const PlanForTheDayRequested());
+      },
     );
   }
 
