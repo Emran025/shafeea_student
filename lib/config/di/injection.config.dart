@@ -54,6 +54,8 @@ import 'package:shafeea/features/auth/domain/usecases/forget_password_usecase.da
     as _i426;
 import 'package:shafeea/features/auth/domain/usecases/get_all_users_use_case.dart'
     as _i1045;
+import 'package:shafeea/features/auth/domain/usecases/get_schools_usecase.dart'
+    as _i577;
 import 'package:shafeea/features/auth/domain/usecases/login_usecase.dart'
     as _i250;
 import 'package:shafeea/features/auth/domain/usecases/logout_usecase.dart'
@@ -467,6 +469,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i822.SuggestUsernameUseCase>(
       () => _i822.SuggestUsernameUseCase(gh<_i424.AuthRepository>()),
     );
+    gh.lazySingleton<_i577.GetSchoolsUseCase>(
+      () => _i577.GetSchoolsUseCase(gh<_i424.AuthRepository>()),
+    );
     gh.factory<_i790.SettingsBloc>(
       () => blocModule.settingsBloc(
         gh<_i24.GetSettings>(),
@@ -496,6 +501,7 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i334.ResendVerificationEmailUseCase>(),
         gh<_i822.SuggestUsernameUseCase>(),
         gh<_i1032.CheckUsernameUseCase>(),
+        gh<_i577.GetSchoolsUseCase>(),
       ),
     );
     return this;

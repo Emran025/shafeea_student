@@ -10,6 +10,7 @@ import '../../../../core/models/success_model.dart';
 import '../models/auth_response_model.dart';
 import '../models/login_request_model.dart';
 import '../models/register_request_model.dart';
+import '../models/school_model.dart';
 import 'auth_remote_data_source.dart';
 import 'package:injectable/injectable.dart';
 
@@ -161,6 +162,21 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       (map) => UserModel.fromJson(map),
       'Invalid profile response format',
     );
+  }
+
+  @override
+  Future<List<SchoolModel>> getSchools() async {
+    final json = await api.get(EndPoint.schools);
+    final rawList = json is Map<String, dynamic>
+        ? (json['data'] ?? json['schools'] ?? json)
+        : json;
+    if (rawList is List) {
+      return rawList
+          .whereType<Map<String, dynamic>>()
+          .map(SchoolModel.fromJson)
+          .toList();
+    }
+    return [];
   }
 
   /// Helper that checks for server-error payload and parses the JSON.

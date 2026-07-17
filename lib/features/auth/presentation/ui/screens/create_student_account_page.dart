@@ -7,6 +7,7 @@ import 'package:shafeea/core/models/gender.dart';
 
 import 'package:shafeea/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:shafeea/features/auth/domain/entities/student_applicant.dart';
+import 'package:shafeea/shared/widgets/school_picker_dialog.dart';
 
 import 'package:shafeea/shared/themes/app_theme.dart';
 import 'package:shafeea/core/constants/countries_names.dart';
@@ -49,6 +50,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
   late final TextEditingController _countryCtrl;
   late final TextEditingController _residenceCtrl;
   late final TextEditingController _timeCtrl;
+  late final TextEditingController _schoolCtrl;
 
   // ── State ────────────────────────────────────────────────────────
   late CountryModel selectedPhoneZone;
@@ -85,6 +87,9 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
 
     _nameCtrl.addListener(_onNameChanged);
     _usernameCtrl.addListener(_onUsernameChanged);
+
+    // Fetch available schools for the registration dropdown.
+    context.read<AuthBloc>().add(FetchSchoolsRequested());
   }
 
   void _initControllers() {
@@ -107,6 +112,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
     _countryCtrl = TextEditingController();
     _residenceCtrl = TextEditingController();
     _timeCtrl = TextEditingController();
+    _schoolCtrl = TextEditingController();
   }
 
   void _initCountries() {
@@ -144,6 +150,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
       _countryCtrl,
       _residenceCtrl,
       _timeCtrl,
+      _schoolCtrl,
     ]) {
       c.dispose();
     }
@@ -302,6 +309,7 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
                                 return null;
                               },
                             ),
+                            _buildSchoolField(context, state),
                           ],
                         ),
                         _buildSection(
@@ -888,6 +896,8 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
+      final selectedSchool = context.read<AuthBloc>().state.selectedSchool;
+
       final student = StudentApplicantEntity(
         name: _nameCtrl.text.trim(),
         email: _emailCtrl.text.trim(),
@@ -906,12 +916,113 @@ class _CreateStudentAccountPageState extends State<CreateStudentAccountPage>
         whatsappZone: _whatsAppZoneCtrl.text.replaceAll('+', ''),
         country: _countryCtrl.text,
         residence: _residenceCtrl.text,
+        schoolId: selectedSchool?.id,
       );
 
       context.read<AuthBloc>().add(
         SubmitStudentRegistration(studentApplicant: student),
       );
     }
+  }
+
+  /// School selector dropdown — shows a shimmer while loading, the list of
+  /// schools once loaded, and a neutral fallback on failure.
+  /// Tappable read-only field that opens [SchoolPickerDialog].
+  ///
+  /// Returns [SizedBox.shrink] when:
+  /// - The list is empty (no schools configured on the backend).
+  /// - There is exactly one school (it is pre-selected silently by the BLoC).
+  /// While still loading it renders a disabled shimmer row instead.
+  Widget _buildSchoolField(BuildContext context, AuthState state) {
+    // Hide entirely once loaded if there is nothing meaningful to choose from.
+    if (state.schoolsStatus == SchoolsStatus.loaded &&
+        state.schools.length <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    final isLoading = state.schoolsStatus == SchoolsStatus.loading ||
+        state.schoolsStatus == SchoolsStatus.initial;
+
+    // ── Loading shimmer ──────────────────────────────────────────────
+    if (isLoading) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: isDark
+                ? colorScheme.onSurface.withOpacity(0.07)
+                : colorScheme.primary.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: colorScheme.onSurface.withOpacity(0.1),
+            ),
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 14),
+              Icon(
+                Icons.school_outlined,
+                color: colorScheme.primary.withOpacity(0.5),
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'جارٍ تحميل المدارس...',
+                style: TextStyle(
+                  fontFamily: 'Cairo',
+                  fontSize: 13,
+                  color: colorScheme.onSurface.withOpacity(0.45),
+                ),
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // ── Tappable field ───────────────────────────────────────────────
+    return CustomTextField(
+      controller: _schoolCtrl,
+      prefixIcon: Icons.school_outlined,
+      label: 'المدرسة',
+      readOnly: true,
+      onTap: (_, __) => _showSchoolDialog(state),
+    );
+  }
+
+  /// Opens the [SchoolPickerDialog], then dispatches [SchoolSelected] and
+  /// syncs [_schoolCtrl] with the chosen school name.
+  void _showSchoolDialog(AuthState state) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => SchoolPickerDialog(
+        schools: state.schools,
+        initialSchool: state.selectedSchool,
+        onSchoolSelected: (school) {
+          context.read<AuthBloc>().add(SchoolSelected(school));
+          setState(() {
+            _schoolCtrl.text =
+                school != null ? school.name : 'مستقل / بدون مدرسة';
+          });
+        },
+      ),
+    );
   }
 
   Widget _buildDropdown(

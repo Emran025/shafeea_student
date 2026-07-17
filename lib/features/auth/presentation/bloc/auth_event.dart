@@ -111,3 +111,16 @@ final class UsernameCheckRequested extends AuthEvent {
   @override
   List<Object> get props => [name];
 }
+
+/// Dispatched once from [initState] of the registration screen to load
+/// the list of available schools before the user submits the form.
+class FetchSchoolsRequested extends AuthEvent {}
+
+/// Dispatched when the user picks (or clears) a school in the dropdown.
+/// Pass [school] as `null` to represent "مستقل / بدون مدرسة".
+class SchoolSelected extends AuthEvent {
+  final SchoolEntity? school;
+  const SchoolSelected(this.school);
+  @override
+  List<Object?> get props => [school];
+}

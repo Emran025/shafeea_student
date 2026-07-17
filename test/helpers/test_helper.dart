@@ -8,6 +8,7 @@ import 'package:shafeea/core/network/network_info.dart';
 import 'package:shafeea/core/services/device_info_service.dart';
 import 'package:shafeea/features/auth/domain/usecases/auth_suggest_username_usecase.dart';
 import 'package:shafeea/features/auth/domain/usecases/auth_check_username_usecase.dart';
+import 'package:shafeea/features/auth/domain/usecases/get_schools_usecase.dart';
 import 'package:shafeea/features/auth/domain/usecases/resend_verification_usecase.dart';
 import 'package:shafeea/features/daily_tracking/domain/usecases/save_draft_mistakes_use_case.dart';
 import 'package:shafeea/features/home/domain/usecases/save_student_plan.dart';
@@ -125,6 +126,7 @@ class MockSuggestUsernameUseCase extends Mock
     implements SuggestUsernameUseCase {}
 
 class MockCheckUsernameUseCase extends Mock implements CheckUsernameUseCase {}
+class MockGetSchoolsUseCase extends Mock implements GetSchoolsUseCase {}
 
 // ============================================================================
 // MOCK CLASSES - Home Feature

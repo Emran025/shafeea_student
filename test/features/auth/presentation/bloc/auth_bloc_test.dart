@@ -23,6 +23,7 @@ void main() {
   late MockResendVerificationEmailUseCase mockResendVerificationEmailUseCase;
   late MockSuggestUsernameUseCase mockSuggestUsernameUseCase;
   late MockCheckUsernameUseCase mockCheckUsernameUseCase;
+  late MockGetSchoolsUseCase mockGetSchoolsUseCase;
 
   setUp(() {
     mockLogInUseCase = MockLogInUseCase();
@@ -36,6 +37,7 @@ void main() {
     mockResendVerificationEmailUseCase = MockResendVerificationEmailUseCase();
     mockSuggestUsernameUseCase = MockSuggestUsernameUseCase();
     mockCheckUsernameUseCase = MockCheckUsernameUseCase();
+    mockGetSchoolsUseCase = MockGetSchoolsUseCase();
 
     authBloc = AuthBloc(
       mockLogInUseCase,
@@ -49,6 +51,7 @@ void main() {
       mockResendVerificationEmailUseCase,
       mockSuggestUsernameUseCase,
       mockCheckUsernameUseCase,
+      mockGetSchoolsUseCase,
     );
   });
 

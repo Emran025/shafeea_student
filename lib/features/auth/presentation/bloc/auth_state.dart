@@ -20,6 +20,8 @@ enum UsernameSuggestionStatus { initial, loading, loaded, failure }
 
 enum UsernameCheckStatus { initial, loading, loaded, failure }
 
+enum SchoolsStatus { initial, loading, loaded, failure }
+
 /// -----------------------------------------------------------------
 /// AuthState Class
 /// -----------------------------------------------------------------
@@ -67,6 +69,13 @@ final class AuthState extends Equatable {
   // --- Username Check State ---
   final UsernameCheckStatus usernameCheckStatus;
   final bool usernameCheck;
+
+  // --- Schools State ---
+  final SchoolsStatus schoolsStatus;
+  final List<SchoolEntity> schools;
+  final SchoolEntity? selectedSchool;
+  final Failure? schoolsFailure;
+
   const AuthState({
     // General
     this.authStatus = AuthStatus.initializing,
@@ -111,6 +120,12 @@ final class AuthState extends Equatable {
     // Username Check
     this.usernameCheckStatus = UsernameCheckStatus.initial,
     this.usernameCheck = false,
+
+    // Schools
+    this.schoolsStatus = SchoolsStatus.initial,
+    this.schools = const [],
+    this.selectedSchool,
+    this.schoolsFailure,
   });
 
   AuthState copyWith({
@@ -143,6 +158,13 @@ final class AuthState extends Equatable {
     // Username Check
     UsernameCheckStatus? usernameCheckStatus,
     bool? usernameCheck,
+
+    // Schools
+    SchoolsStatus? schoolsStatus,
+    List<SchoolEntity>? schools,
+    SchoolEntity? selectedSchool,
+    bool clearSelectedSchool = false,
+    Failure? schoolsFailure,
   }) {
     return AuthState(
       authStatus: authStatus ?? this.authStatus,
@@ -176,6 +198,12 @@ final class AuthState extends Equatable {
       usernameCheckStatus:
           usernameCheckStatus ?? this.usernameCheckStatus,
       usernameCheck: usernameCheck ?? this.usernameCheck,
+
+      // Schools
+      schoolsStatus: schoolsStatus ?? this.schoolsStatus,
+      schools: schools ?? this.schools,
+      selectedSchool: clearSelectedSchool ? null : (selectedSchool ?? this.selectedSchool),
+      schoolsFailure: schoolsFailure ?? this.schoolsFailure,
     );
   }
 
@@ -206,5 +234,10 @@ final class AuthState extends Equatable {
 
     usernameCheckStatus,
     usernameCheck,
+
+    schoolsStatus,
+    schools,
+    selectedSchool,
+    schoolsFailure,
   ];
 }

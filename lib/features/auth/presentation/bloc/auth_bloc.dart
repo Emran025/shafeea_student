@@ -6,11 +6,13 @@ import '../../../../core/error/failures.dart';
 import '../../domain/entities/login_credentials_entity.dart';
 import '../../domain/entities/student_applicant.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/entities/school_entity.dart';
 import '../../domain/usecases/auth_check_username_usecase.dart';
 import '../../domain/usecases/auth_suggest_username_usecase.dart';
 import '../../domain/usecases/change_password_usecase.dart';
 import '../../domain/usecases/forget_password_usecase.dart';
 import '../../domain/usecases/get_all_users_use_case.dart';
+import '../../domain/usecases/get_schools_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/check_login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
@@ -35,6 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SwitchUserUseCase switchUserUC;
   final SuggestUsernameUseCase suggestUsernameUC;
   final CheckUsernameUseCase checkUsernameUC;
+  final GetSchoolsUseCase getSchoolsUC;
 
   AuthBloc(
     this.logInUC,
@@ -48,6 +51,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     this.resendVerificationEmailUC,
     this.suggestUsernameUC,
     this.checkUsernameUC,
+    this.getSchoolsUC,
   ) : super(AuthState()) {
     on<LogInRequested>(_onLogIn);
 
@@ -66,6 +70,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<CheckVerificationStatusRequested>(_onCheckVerificationStatus);
     on<UsernameRequested>(_onSuggestUsername);
     on<UsernameCheckRequested>(_onCheckUsername);
+    on<FetchSchoolsRequested>(_onFetchSchools);
+    on<SchoolSelected>(_onSchoolSelected);
   }
 
   void _appStarted(AppStarted event, Emitter<AuthState> emit) async {
@@ -340,6 +346,44 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           selectedUser: user,
         ),
       ),
+    );
+  }
+
+  /// Fetches the list of available schools from the public API endpoint.
+  Future<void> _onFetchSchools(
+    FetchSchoolsRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(schoolsStatus: SchoolsStatus.loading));
+    final result = await getSchoolsUC();
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          schoolsStatus: SchoolsStatus.failure,
+          schoolsFailure: failure,
+        ),
+      ),
+      (schools) {
+        // If exactly one school exists, silently pre-select it — the field
+        // will not be shown to the user (see UI guard in _buildSchoolField).
+        final autoSelect = schools.length == 1 ? schools.first : null;
+        emit(
+          state.copyWith(
+            schoolsStatus: SchoolsStatus.loaded,
+            schools: schools,
+            selectedSchool: autoSelect,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Updates the selected school in state when the user picks one in the UI.
+  void _onSchoolSelected(SchoolSelected event, Emitter<AuthState> emit) {
+    emit(
+      event.school == null
+          ? state.copyWith(clearSelectedSchool: true)
+          : state.copyWith(selectedSchool: event.school),
     );
   }
 

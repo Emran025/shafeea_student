@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/entities/success_entity.dart';
 import '../../../../core/error/failures.dart';
 import '../entities/login_credentials_entity.dart';
+import '../entities/school_entity.dart';
 import '../entities/student_applicant.dart';
 import '../entities/user_entity.dart';
 // features/auth/domain/repositories/auth_repository.dart
@@ -55,4 +56,7 @@ abstract class AuthRepository {
   /// Returns [Right(String)] with the checked username, or [Left(Failure)]
   /// on a network error. An empty name always returns [Right('')].
   Future<Either<Failure, bool>> checkUsername(String username);
+
+  /// Fetches the list of available schools from the public endpoint.
+  Future<Either<Failure, List<SchoolEntity>>> getSchools();
 }

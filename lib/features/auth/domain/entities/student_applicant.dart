@@ -17,6 +17,7 @@ class StudentApplicantEntity extends Equatable {
   final String? whatsappZone;
   final String? country;
   final String? residence;
+  final int? schoolId;
 
   const StudentApplicantEntity({
     required this.name,
@@ -34,8 +35,9 @@ class StudentApplicantEntity extends Equatable {
     this.whatsappZone,
     this.country,
     this.residence,
+    this.schoolId,
   });
 
   @override
-  List<Object?> get props => [email, username, name, phone];
+  List<Object?> get props => [email, username, name, phone, schoolId];
 }

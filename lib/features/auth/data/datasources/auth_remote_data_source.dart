@@ -6,6 +6,7 @@ import '../../../../core/models/success_model.dart';
 import '../models/auth_response_model.dart';
 import '../models/login_request_model.dart';
 import '../models/register_request_model.dart';
+import '../models/school_model.dart';
 
 /// Defines remote data operations for authentication.
 ///
@@ -41,4 +42,8 @@ abstract class AuthRemoteDataSource {
 
   /// Fetches the authenticated user's latest profile.
   Future<UserModel> getProfile();
+
+  /// Fetches the list of available schools from the public endpoint.
+  /// No authentication required.
+  Future<List<SchoolModel>> getSchools();
 }

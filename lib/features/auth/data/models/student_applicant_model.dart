@@ -21,6 +21,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
     super.whatsappZone,
     super.country,
     super.residence,
+    super.schoolId,
   });
 
   Map<String, dynamic> toJson() {
@@ -40,6 +41,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
       'whatsapp_zone': whatsappZone,
       'country': country,
       'residence': residence,
+      if (schoolId != null) 'school_id': schoolId,
     };
   }
 
@@ -60,6 +62,7 @@ class StudentApplicantModel extends StudentApplicantEntity {
       whatsappZone: entity.whatsappZone,
       country: entity.country,
       residence: entity.residence,
+      schoolId: entity.schoolId,
     );
   }
 

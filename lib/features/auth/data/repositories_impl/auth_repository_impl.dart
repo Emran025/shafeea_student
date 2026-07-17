@@ -7,6 +7,7 @@ import '../../../../core/entities/success_entity.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../home/data/models/student_info_model.dart';
+import '../../domain/entities/school_entity.dart';
 import '../../domain/entities/student_applicant.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -334,6 +335,18 @@ final class AuthRepositoryImpl implements AuthRepository {
     try {
       final checkion = await _remoteDataSource.checkUsernameAvailability(username:username);
       return Right(checkion);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    } catch (e) {
+      return Left(NetworkFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<SchoolEntity>>> getSchools() async {
+    try {
+      final models = await _remoteDataSource.getSchools();
+      return Right(models.map((m) => m.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
     } catch (e) {
