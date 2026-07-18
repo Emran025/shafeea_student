@@ -30,7 +30,6 @@ class StudentProfileScreen extends StatefulWidget {
 }
 
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -58,8 +57,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       }).toList();
 
       final updatedPlan = FollowUpPlanEntity(
-        planId: currentPlanId == '0' || currentPlanId.isEmpty ? const Uuid().v4() : currentPlanId,
-        serverPlanId: currentPlanId == '0' || currentPlanId.isEmpty ? '0' : currentPlanId,
+        planId: currentPlanId == '0' || currentPlanId.isEmpty
+            ? const Uuid().v4()
+            : currentPlanId,
+        serverPlanId: currentPlanId == '0' || currentPlanId.isEmpty
+            ? '0'
+            : currentPlanId,
         frequency: freq,
         details: details,
         createdAt: DateTime.now().toIso8601String(),
@@ -113,7 +116,10 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
             if (student.status != ActiveStatus.active)
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.amber.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
@@ -469,7 +475,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  "${DateUtilsHelper.calculateAge(student.birthDate)}  عام",
+                  "${DateUtilsHelper.calculateAge(student.birthDate) ?? '—'}  عام",
                   style: GoogleFonts.cairo(
                     fontSize: 16,
                     color: AppColors.lightCream,
@@ -486,7 +492,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  "25  جزءًا",
+                  student.memorizationLevel,
                   style: GoogleFonts.cairo(
                     fontSize: 16,
                     color: AppColors.lightCream,
