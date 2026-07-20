@@ -27,13 +27,13 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to build against (e.g. v2.1.0)'
+        description: "Tag to build against (e.g. v2.1.0)"
         required: true
         type: string
 
 permissions:
-  contents: write   # upload release assets
-  packages: read    # pull ghcr.io image
+  contents: write # upload release assets
+  packages: read # pull ghcr.io image
 
 env:
   BUILDER_IMAGE: ghcr.io/emran025/flutter-android-builder:3.44.5
@@ -45,10 +45,10 @@ jobs:
     name: Fetch Active Schools
     runs-on: ubuntu-latest
     outputs:
-      matrix:      ${{ steps.schools.outputs.matrix }}
+      matrix: ${{ steps.schools.outputs.matrix }}
       has_schools: ${{ steps.schools.outputs.has_schools }}
       release_tag: ${{ steps.tag.outputs.release_tag }}
-      build_name:  ${{ steps.tag.outputs.build_name }}
+      build_name: ${{ steps.tag.outputs.build_name }}
     steps:
       - name: Resolve release tag
         id: tag
@@ -86,7 +86,18 @@ jobs:
             -H "X-Build-Signature: ${{ steps.sign.outputs.signature }}" \
             "${BUILD_API_BASE_URL}/api/build/schools?mode=all")
 
-          # Build a flat matrix of schools for this app
+          if [[ -z "${RESPONSE}" ]]; then
+            echo "::error::Build API returned an empty response — check BUILD_API_BASE_URL and signing secrets."
+            exit 1
+          fi
+
+          # Build a flat matrix of schools for this app.
+          # Always emits valid JSON; when there are no active schools the
+          # include list contains a single sentinel entry (_no_schools=true)
+          # so that fromJson() never receives empty input.  The downstream
+          # jobs are guarded by `if: has_schools == 'true'` so the sentinel
+          # is never actually used.
+
           MATRIX=$(echo "${RESPONSE}" | python3 -c "
           import json, sys
           data = json.load(sys.stdin)
@@ -105,12 +116,21 @@ jobs:
                   'keystore_key_alias':      s.get('keystore_key_alias', ''),
                   'keystore_key_password':   s.get('keystore_key_password', ''),
               })
+          if not items:
+              items = [{'_no_schools': True}]
           print(json.dumps({'include': items}))
           sys.stderr.write(f'Found {len(items)} schools.\n')
           ")
 
           COUNT=$(echo "${RESPONSE}" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d.get('data', [])))")
-          echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
+
+          # Use the heredoc form so JSON (with braces, quotes, colons) is
+          # never misinterpreted by the GITHUB_OUTPUT line parser.
+          {
+            echo 'matrix<<__MATRIX_EOF__'
+            echo "${MATRIX}"
+            echo '__MATRIX_EOF__'
+          } >> "$GITHUB_OUTPUT"
           echo "has_schools=$([[ ${COUNT} -gt 0 ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
   # ── Job 2: Build one APK per school (parallel, max 10 concurrent) ─────────────
@@ -147,15 +167,15 @@ jobs:
           # School identity
           SCHOOL_CODE: ${{ matrix.school_code }}
           SCHOOL_NAME: ${{ matrix.school_name }}
-          SCHOOL_ID:   ${{ matrix.school_id }}
-          APP_KEY:     ${{ matrix.app_key }}
+          SCHOOL_ID: ${{ matrix.school_id }}
+          APP_KEY: ${{ matrix.app_key }}
           SCHOOL_LOCKED_MODE: ${{ matrix.school_locked_mode }}
-          LOGO_PATH:   /tmp/logos/${{ matrix.school_code }}.png
+          LOGO_PATH: /tmp/logos/${{ matrix.school_code }}.png
           # Signing
-          KEYSTORE_FILE:           ${{ matrix.keystore_file }}
-          STORE_PASSWORD:          ${{ matrix.keystore_store_password }}
-          KEY_ALIAS:               ${{ matrix.keystore_key_alias }}
-          KEY_PASSWORD:            ${{ matrix.keystore_key_password }}
+          KEYSTORE_FILE: ${{ matrix.keystore_file }}
+          STORE_PASSWORD: ${{ matrix.keystore_store_password }}
+          KEY_ALIAS: ${{ matrix.keystore_key_alias }}
+          KEY_PASSWORD: ${{ matrix.keystore_key_password }}
           # API URL
           SHAFEEA_STUDENT_API_URL: ${{ secrets.SHAFEEA_STUDENT_API_URL }}
         run: |
@@ -214,7 +234,7 @@ jobs:
       - name: Sign and notify web platform
         env:
           BUILD_API_PRIVATE_KEY: ${{ secrets.BUILD_API_PRIVATE_KEY }}
-          BUILD_API_BASE_URL:    ${{ secrets.BUILD_API_BASE_URL }}
+          BUILD_API_BASE_URL: ${{ secrets.BUILD_API_BASE_URL }}
         run: |
           RELEASE_TAG="${{ needs.prepare-matrix.outputs.release_tag }}"
           APK_NAME="${{ matrix.school_code }}-student-v${{ needs.prepare-matrix.outputs.build_name }}.apk"
