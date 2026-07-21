@@ -6,20 +6,6 @@ name: Rebuild School — Student App
 #
 # The full build payload is embedded in client_payload so no additional API
 # call is needed from CI.  The resulting APK is uploaded to the latest release.
-#
-# Expected client_payload:
-#   {
-#     "school_id":   5,
-#     "school_code": "al-noor-center",
-#     "school_name": "مجمع النور القرآني",
-#     "logo_url":    "https://...shafeea.systems360.cloud/storage/logos/...",
-#     "app_key":     "abc123...",
-#     "school_locked_mode": true,
-#     "keystore_file":           "base64...",
-#     "keystore_store_password": "plain",
-#     "keystore_key_alias":      "key0",
-#     "keystore_key_password":   "plain"
-#   }
 # ──────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -29,6 +15,10 @@ on:
 permissions:
   contents: write   # upload release assets
   packages: read    # pull ghcr.io image
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   # ── Resolve the latest tag so we know which release to attach to ──────────────
@@ -155,13 +145,16 @@ jobs:
           APK_NAME="${{ needs.build.outputs.apk_name }}"
           APK_URL="https://github.com/${{ github.repository }}/releases/download/${RELEASE_TAG}/${APK_NAME}"
 
+          KEY_FILE=$(mktemp)
+          printf '%s\n' "${BUILD_API_PRIVATE_KEY}" > "${KEY_FILE}"
+
           sign_and_post() {
             local URL="$1"
             local BODY="$2"
             local TIMESTAMP=$(date +%s)
             local SIGNATURE=$(printf '%s\n%s' "${TIMESTAMP}" "${BODY}" | \
-              openssl dgst -sha256 -sign <(echo "${BUILD_API_PRIVATE_KEY}") | \
-              base64 -w 0)
+              openssl dgst -sha256 -sign "${KEY_FILE}" | \
+              base64 | tr -d '\r\n')
             curl -fsSL -X POST \
               -H "Content-Type: application/json" \
               -H "X-Build-Timestamp: ${TIMESTAMP}" \
@@ -176,6 +169,8 @@ jobs:
           sign_and_post \
             "${BUILD_API_BASE_URL}/api/webhooks/build-complete" \
             "{\"school_id\":${{ github.event.client_payload.school_id }},\"app\":\"student\",\"release\":\"${RELEASE_TAG}\",\"apk_url\":\"${APK_URL}\"}"
+
+          rm -f "${KEY_FILE}"
 
   # ── Summary ───────────────────────────────────────────────────────────────────
   summarize:
